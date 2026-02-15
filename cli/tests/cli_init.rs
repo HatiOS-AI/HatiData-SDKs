@@ -19,11 +19,8 @@ org_id = ""
     std::fs::write(hati_dir.join("config.toml"), config_content).expect("Failed to write config");
 
     // Write .gitignore
-    std::fs::write(
-        hati_dir.join(".gitignore"),
-        "*.duckdb\n*.duckdb.wal\n",
-    )
-    .expect("Failed to write .gitignore");
+    std::fs::write(hati_dir.join(".gitignore"), "*.duckdb\n*.duckdb.wal\n")
+        .expect("Failed to write .gitignore");
 
     // Create DuckDB database
     let db_path = hati_dir.join("local.duckdb");
@@ -44,7 +41,9 @@ org_id = ""
     // Verify config.toml is valid TOML
     let config_str =
         std::fs::read_to_string(hati_dir.join("config.toml")).expect("Failed to read config");
-    let config: toml::Value = config_str.parse().expect("config.toml should be valid TOML");
+    let config: toml::Value = config_str
+        .parse()
+        .expect("config.toml should be valid TOML");
     assert_eq!(
         config.get("cloud_endpoint").and_then(|v| v.as_str()),
         Some("https://api.hatidata.com")
@@ -86,7 +85,9 @@ fn test_init_duckdb_is_functional() {
     // Re-open and verify data persists
     {
         let conn = duckdb::Connection::open(&db_path).expect("Failed to reopen DuckDB");
-        let mut stmt = conn.prepare("SELECT COUNT(*) FROM test").expect("Failed to prepare");
+        let mut stmt = conn
+            .prepare("SELECT COUNT(*) FROM test")
+            .expect("Failed to prepare");
         let count: i64 = stmt
             .query_row([], |row| row.get(0))
             .expect("Failed to query");

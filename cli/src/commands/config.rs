@@ -33,12 +33,7 @@ pub async fn set(key: String, value: String) -> Result<()> {
         value
     };
 
-    println!(
-        "{} {} = {}",
-        "OK".green().bold(),
-        key.cyan(),
-        display_value
-    );
+    println!("{} {} = {}", "OK".green().bold(), key.cyan(), display_value);
 
     Ok(())
 }

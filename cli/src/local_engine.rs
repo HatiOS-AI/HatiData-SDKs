@@ -25,8 +25,8 @@ pub struct LocalEngine {
 impl LocalEngine {
     /// Open (or create) a DuckDB database at the given path.
     pub fn open(path: &Path) -> Result<Self> {
-        let conn =
-            Connection::open(path).with_context(|| format!("Failed to open DuckDB at {}", path.display()))?;
+        let conn = Connection::open(path)
+            .with_context(|| format!("Failed to open DuckDB at {}", path.display()))?;
         Ok(Self { conn })
     }
 
@@ -87,7 +87,10 @@ impl LocalEngine {
         // Now stmt's mutable borrow is released; column_count()/column_name() are safe
         let column_count = stmt.column_count();
         let column_names: Vec<String> = (0..column_count)
-            .map(|i| stmt.column_name(i).map_or("?".to_string(), |v| v.to_string()))
+            .map(|i| {
+                stmt.column_name(i)
+                    .map_or("?".to_string(), |v| v.to_string())
+            })
             .collect();
 
         let rows: Vec<Vec<String>> = raw_rows
@@ -135,10 +138,7 @@ impl LocalEngine {
     /// Get the row count for a specific table.
     pub fn table_row_count(&self, table: &str) -> Result<u64> {
         // Validate table name to prevent SQL injection (alphanumeric + underscore only)
-        if !table
-            .chars()
-            .all(|c| c.is_alphanumeric() || c == '_')
-        {
+        if !table.chars().all(|c| c.is_alphanumeric() || c == '_') {
             anyhow::bail!("Invalid table name: {table}");
         }
 
@@ -162,10 +162,7 @@ impl LocalEngine {
     /// Export a table to a Parquet file.
     pub fn export_table_parquet(&self, table: &str, output: &Path) -> Result<()> {
         // Validate table name
-        if !table
-            .chars()
-            .all(|c| c.is_alphanumeric() || c == '_')
-        {
+        if !table.chars().all(|c| c.is_alphanumeric() || c == '_') {
             anyhow::bail!("Invalid table name: {table}");
         }
 

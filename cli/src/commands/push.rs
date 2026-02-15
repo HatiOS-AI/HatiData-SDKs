@@ -18,10 +18,7 @@ pub async fn run(target: String, tables: Option<String>) -> Result<()> {
         .get("cloud_endpoint")
         .and_then(|v| v.as_str())
         .unwrap_or("https://api.hatidata.com");
-    let api_key = config
-        .get("api_key")
-        .and_then(|v| v.as_str())
-        .unwrap_or("");
+    let api_key = config.get("api_key").and_then(|v| v.as_str()).unwrap_or("");
 
     if api_key.is_empty() {
         bail!(
@@ -42,7 +39,10 @@ pub async fn run(target: String, tables: Option<String>) -> Result<()> {
 
     // Determine which tables to push
     let table_list = match tables {
-        Some(t) => t.split(',').map(|s| s.trim().to_string()).collect::<Vec<_>>(),
+        Some(t) => t
+            .split(',')
+            .map(|s| s.trim().to_string())
+            .collect::<Vec<_>>(),
         None => {
             let infos = engine.list_tables()?;
             infos.into_iter().map(|t| t.name).collect()

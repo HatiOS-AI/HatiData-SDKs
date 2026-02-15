@@ -65,7 +65,9 @@ pub async fn run() -> Result<()> {
     println!("  {}", "Configuration:".bold());
     if config_path.exists() {
         let contents = std::fs::read_to_string(&config_path).unwrap_or_default();
-        let config: toml::Value = contents.parse().unwrap_or(toml::Value::Table(Default::default()));
+        let config: toml::Value = contents
+            .parse()
+            .unwrap_or(toml::Value::Table(Default::default()));
 
         if let Some(table) = config.as_table() {
             for (key, value) in table {
@@ -90,19 +92,13 @@ pub async fn run() -> Result<()> {
             }
         }
     } else {
-        println!(
-            "    {} config.toml not found",
-            "!".yellow().bold()
-        );
+        println!("    {} config.toml not found", "!".yellow().bold());
     }
 
     // Sync status
     println!();
     println!("  {}", "Sync:".bold());
-    println!(
-        "    {} No sync history yet",
-        "-".dimmed()
-    );
+    println!("    {} No sync history yet", "-".dimmed());
 
     Ok(())
 }

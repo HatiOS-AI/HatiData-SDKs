@@ -68,11 +68,7 @@ pub async fn run(path: Option<String>) -> Result<()> {
     let gitignore_path = hati_dir.join(".gitignore");
     std::fs::write(&gitignore_path, GITIGNORE)
         .with_context(|| format!("Failed to write {}", gitignore_path.display()))?;
-    println!(
-        "  {} Created {}",
-        "+".green().bold(),
-        ".gitignore".dimmed()
-    );
+    println!("  {} Created {}", "+".green().bold(), ".gitignore".dimmed());
 
     // Create empty DuckDB database
     let db_path = hati_dir.join("local.duckdb");
@@ -87,26 +83,14 @@ pub async fn run(path: Option<String>) -> Result<()> {
     println!("{} HatiData project initialized!", "OK".green().bold());
     println!();
     println!("Next steps:");
-    println!(
-        "  {} Set your API key",
-        "1.".dimmed()
-    );
-    println!(
-        "     {}",
-        "hati config set api_key hd_live_...".cyan()
-    );
-    println!(
-        "  {} Run a query",
-        "2.".dimmed()
-    );
+    println!("  {} Set your API key", "1.".dimmed());
+    println!("     {}", "hati config set api_key hd_live_...".cyan());
+    println!("  {} Run a query", "2.".dimmed());
     println!(
         "     {}",
         "hati query \"CREATE TABLE test (id INT, name VARCHAR)\"".cyan()
     );
-    println!(
-        "  {} Push to cloud",
-        "3.".dimmed()
-    );
+    println!("  {} Push to cloud", "3.".dimmed());
     println!("     {}", "hati push".cyan());
 
     Ok(())

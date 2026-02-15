@@ -12,9 +12,7 @@ fn test_query_select_literal() {
 
     let conn = duckdb::Connection::open(&db_path).expect("Failed to open DuckDB");
 
-    let mut stmt = conn
-        .prepare("SELECT 1 AS num")
-        .expect("Failed to prepare");
+    let mut stmt = conn.prepare("SELECT 1 AS num").expect("Failed to prepare");
 
     // query_map executes the statement and returns an iterator.
     // Collecting into Vec drops the mutable borrow on stmt.

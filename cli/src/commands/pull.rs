@@ -11,10 +11,7 @@ pub async fn run(tables: Option<String>) -> Result<()> {
         .get("cloud_endpoint")
         .and_then(|v| v.as_str())
         .unwrap_or("https://api.hatidata.com");
-    let api_key = config
-        .get("api_key")
-        .and_then(|v| v.as_str())
-        .unwrap_or("");
+    let api_key = config.get("api_key").and_then(|v| v.as_str()).unwrap_or("");
 
     if api_key.is_empty() {
         bail!(
@@ -26,7 +23,11 @@ pub async fn run(tables: Option<String>) -> Result<()> {
     let table_filter = match &tables {
         Some(t) => {
             let list: Vec<&str> = t.split(',').map(|s| s.trim()).collect();
-            format!("{} table{}", list.len(), if list.len() == 1 { "" } else { "s" })
+            format!(
+                "{} table{}",
+                list.len(),
+                if list.len() == 1 { "" } else { "s" }
+            )
         }
         None => "all tables".to_string(),
     };
@@ -53,10 +54,7 @@ pub async fn run(tables: Option<String>) -> Result<()> {
         "This will download schema and data from the remote endpoint into local DuckDB.".dimmed()
     );
     println!();
-    println!(
-        "{} When implemented, pull will:",
-        "INFO".blue().bold()
-    );
+    println!("{} When implemented, pull will:", "INFO".blue().bold());
     println!("  - Fetch remote table schemas");
     println!("  - Download data as Parquet");
     println!("  - Load into local .hati/local.duckdb");
