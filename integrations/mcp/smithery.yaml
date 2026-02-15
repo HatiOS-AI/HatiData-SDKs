@@ -12,7 +12,7 @@ documentation: https://docs.hatiosai.com/hatidata/mcp
 
 install:
   pip: pip install hatidata-agent
-  cargo: cargo install hati
+  cargo: cargo install hatidata-cli
 
 categories:
   - database

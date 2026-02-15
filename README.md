@@ -7,7 +7,7 @@ Install in 30 seconds. Query in 60.
 [![CI](https://github.com/HatiOS-AI/HatiData-Core/actions/workflows/ci.yml/badge.svg)](https://github.com/HatiOS-AI/HatiData-Core/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/hatidata-agent)](https://pypi.org/project/hatidata-agent/)
 [![npm](https://img.shields.io/npm/v/@hatidata/sdk)](https://www.npmjs.com/package/@hatidata/sdk)
-[![crates.io](https://img.shields.io/crates/v/hati)](https://crates.io/crates/hati)
+[![crates.io](https://img.shields.io/crates/v/hatidata-cli)](https://crates.io/crates/hatidata-cli)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
 ---
@@ -19,7 +19,7 @@ Install in 30 seconds. Query in 60.
 pip install hatidata-agent
 
 # Rust CLI
-cargo install hati
+cargo install hatidata-cli
 
 # TypeScript / Node.js
 npm install @hatidata/sdk
@@ -82,7 +82,7 @@ const result = await client.query('SELECT * FROM customers');
 
 | Package | Install | Description |
 |---------|---------|-------------|
-| [`hati`](cli/) | `cargo install hati` | CLI: local warehouse + push to cloud |
+| [`hatidata-cli`](cli/) | `cargo install hatidata-cli` | CLI (`hati` binary): local warehouse + push to cloud |
 | [`hatidata-agent`](sdk/python/) | `pip install hatidata-agent` | Python SDK with MCP server |
 | [`@hatidata/sdk`](sdk/typescript/) | `npm install @hatidata/sdk` | TypeScript / Node.js SDK |
 | [`dbt-hatidata`](integrations/dbt/) | `pip install dbt-hatidata` | dbt adapter |

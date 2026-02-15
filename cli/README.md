@@ -9,7 +9,7 @@ Local-first data warehouse for AI agents. Write Snowflake-compatible SQL, run it
 brew install hatidata/tap/hati
 
 # Cargo
-cargo install hati
+cargo install hatidata-cli
 
 # Binary download
 # See Releases: https://github.com/HatiOS-AI/HatiData-Core/releases
