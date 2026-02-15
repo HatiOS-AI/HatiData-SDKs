@@ -31,7 +31,7 @@ HatiData MCP Server provides 23 tools across 5 categories: SQL, Memory, Chain-of
 - [ ] Fill in server details:
   - Name: `hatidata-mcp-server`
   - Description: MCP server for HatiData data warehouse
-  - Repository: https://github.com/HatiOS-AI/hatidata-core
+  - Repository: https://github.com/HatiOS-AI/HatiData-Core
   - Install: `pip install hatidata-agent`
 - [ ] Submit for review
 

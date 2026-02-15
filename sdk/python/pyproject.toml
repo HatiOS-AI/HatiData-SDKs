@@ -45,8 +45,8 @@ dev = [
 [project.urls]
 Homepage = "https://hatidata.com"
 Documentation = "https://docs.hatiosai.com/hatidata"
-Repository = "https://github.com/HatiOS-AI/hatidata-core"
-Changelog = "https://github.com/HatiOS-AI/hatidata-core/releases"
+Repository = "https://github.com/HatiOS-AI/HatiData-Core"
+Changelog = "https://github.com/HatiOS-AI/HatiData-Core/releases"
 
 [project.scripts]
 hatidata-mcp-server = "hatidata_agent.mcp_server:main"

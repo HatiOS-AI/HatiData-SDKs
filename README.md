@@ -4,7 +4,7 @@
 
 Install in 30 seconds. Query in 60.
 
-[![CI](https://github.com/HatiOS-AI/hatidata-core/actions/workflows/ci.yml/badge.svg)](https://github.com/HatiOS-AI/hatidata-core/actions/workflows/ci.yml)
+[![CI](https://github.com/HatiOS-AI/HatiData-Core/actions/workflows/ci.yml/badge.svg)](https://github.com/HatiOS-AI/HatiData-Core/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/hatidata-agent)](https://pypi.org/project/hatidata-agent/)
 [![npm](https://img.shields.io/npm/v/@hatidata/sdk)](https://www.npmjs.com/package/@hatidata/sdk)
 [![crates.io](https://img.shields.io/crates/v/hati)](https://crates.io/crates/hati)

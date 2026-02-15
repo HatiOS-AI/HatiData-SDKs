@@ -12,7 +12,7 @@ brew install hatidata/tap/hati
 cargo install hati
 
 # Binary download
-# See Releases: https://github.com/HatiOS-AI/hatidata-core/releases
+# See Releases: https://github.com/HatiOS-AI/HatiData-Core/releases
 ```
 
 ## Quick Start
@@ -70,7 +70,7 @@ Configuration is stored in `.hati/config.toml` (project-level).
 ## Links
 
 - Docs: https://docs.hatiosai.com/hatidata
-- Repository: https://github.com/HatiOS-AI/hatidata-core
+- Repository: https://github.com/HatiOS-AI/HatiData-Core
 - Website: https://hatidata.com
 
 ## License

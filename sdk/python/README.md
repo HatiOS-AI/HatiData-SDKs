@@ -2,7 +2,7 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/hatidata-agent.svg)](https://pypi.org/project/hatidata-agent/)
 [![Python versions](https://img.shields.io/pypi/pyversions/hatidata-agent.svg)](https://pypi.org/project/hatidata-agent/)
-[![License](https://img.shields.io/pypi/l/hatidata-agent.svg)](https://github.com/HatiOS-AI/hatidata-core/blob/main/LICENSE)
+[![License](https://img.shields.io/pypi/l/hatidata-agent.svg)](https://github.com/HatiOS-AI/HatiData-Core/blob/main/LICENSE)
 
 **RAM for Agents** — Python SDK for AI agents to query HatiData's in-VPC data warehouse with sub-10ms latency via Postgres wire protocol.
 
@@ -143,4 +143,4 @@ Full documentation is available at [docs.hatiosai.com/hatidata](https://docs.hat
 
 ## License
 
-Apache License 2.0. Copyright (c) Marviy Pte Ltd. See [LICENSE](https://github.com/HatiOS-AI/hatidata-core/blob/main/LICENSE) for details.
+Apache License 2.0. Copyright (c) Marviy Pte Ltd. See [LICENSE](https://github.com/HatiOS-AI/HatiData-Core/blob/main/LICENSE) for details.

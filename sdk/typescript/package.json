@@ -25,7 +25,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/HatiOS-AI/hatidata-core",
+    "url": "https://github.com/HatiOS-AI/HatiData-Core",
     "directory": "sdk/typescript"
   },
   "homepage": "https://hatidata.com",
