@@ -1,0 +1,118 @@
+name: hatidata-mcp-server
+version: 0.1.0
+description: >
+  MCP server for HatiData — query, explore, and manage your data warehouse
+  from Claude, Cursor, and Cline. Supports SQL execution, agent memory,
+  chain-of-thought logging, event triggers, and query branching.
+author: Marviy Pte Ltd
+license: Apache-2.0
+homepage: https://hatidata.com
+repository: https://github.com/HatiOS-AI/hatidata-core
+documentation: https://docs.hatiosai.com/hatidata/mcp
+
+install:
+  pip: pip install hatidata-agent
+  cargo: cargo install hati
+
+categories:
+  - database
+  - data-warehouse
+  - ai-agents
+
+tools:
+  # SQL Tools
+  - name: run_sql
+    description: Execute a read-write SQL query against HatiData
+    scope: query:write
+
+  - name: run_sql_readonly
+    description: Execute a read-only SQL query against HatiData
+    scope: query:read
+
+  - name: list_schemas
+    description: List all schemas in the database
+    scope: query:read
+
+  - name: list_tables
+    description: List all tables in a schema with column info
+    scope: query:read
+
+  - name: describe_table
+    description: Get detailed column metadata for a table
+    scope: query:read
+
+  - name: get_usage_stats
+    description: Get query usage statistics for the current session
+    scope: query:read
+
+  # Memory Tools
+  - name: store_memory
+    description: Store a key-value memory entry for the agent
+    scope: memory:write
+
+  - name: search_memory
+    description: Search agent memory by key prefix or semantic query
+    scope: memory:read
+
+  - name: get_agent_state
+    description: Retrieve the current agent state object
+    scope: memory:read
+
+  - name: set_agent_state
+    description: Update the agent state object
+    scope: memory:write
+
+  - name: delete_memory
+    description: Delete a memory entry by key
+    scope: memory:write
+
+  # Chain-of-Thought Tools
+  - name: log_reasoning_step
+    description: Log a reasoning step in the agent's decision chain
+    scope: cot:write
+
+  - name: replay_decision
+    description: Replay a previous decision chain for review
+    scope: cot:read
+
+  - name: get_session_history
+    description: Get the full session history of tool calls and results
+    scope: cot:read
+
+  # Trigger Tools
+  - name: register_trigger
+    description: Register an event trigger that fires on data changes
+    scope: trigger:write
+
+  - name: list_triggers
+    description: List all registered triggers
+    scope: trigger:read
+
+  - name: delete_trigger
+    description: Delete a registered trigger
+    scope: trigger:write
+
+  - name: test_trigger
+    description: Test a trigger by simulating an event
+    scope: trigger:write
+
+  # Branching Tools
+  - name: branch_create
+    description: Create a query branch for isolated experimentation
+    scope: branch:create
+
+  - name: branch_query
+    description: Execute a query within a branch
+    scope: branch:query
+
+  - name: branch_merge
+    description: Merge a branch back into the main database
+    scope: branch:merge
+
+  - name: branch_discard
+    description: Discard a branch and its changes
+    scope: branch:discard
+
+  - name: branch_list
+    description: List all active branches
+    scope: branch:read

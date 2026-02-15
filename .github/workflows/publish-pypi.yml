@@ -1,0 +1,43 @@
+name: Publish Python Packages
+
+on:
+  push:
+    tags:
+      - 'python-*'
+
+jobs:
+  publish:
+    name: Publish ${{ matrix.package }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - package: hatidata-agent
+            directory: sdk/python
+          - package: dbt-hatidata
+            directory: integrations/dbt
+          - package: langchain-hatidata
+            directory: integrations/langchain
+          - package: crewai-hatidata
+            directory: integrations/crewai
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install build tools
+        run: pip install build twine
+      - name: Build
+        working-directory: ${{ matrix.directory }}
+        run: python -m build
+      - name: Check
+        working-directory: ${{ matrix.directory }}
+        run: twine check dist/*
+      - name: Publish to PyPI
+        working-directory: ${{ matrix.directory }}
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*

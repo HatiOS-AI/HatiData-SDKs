@@ -1,0 +1,40 @@
+from setuptools import setup, find_namespace_packages
+
+setup(
+    name="dbt-hatidata",
+    version="0.1.0",
+    description="dbt adapter for HatiData — Snowflake-compatible in-VPC data warehouse",
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
+    author="Marviy Pte Ltd",
+    author_email="eng@hatidata.com",
+    url="https://github.com/HatiOS-AI/hatidata-core",
+    project_urls={
+        "Homepage": "https://hatidata.com",
+        "Documentation": "https://docs.hatiosai.com/hatidata",
+        "Repository": "https://github.com/HatiOS-AI/hatidata-core",
+        "Changelog": "https://github.com/HatiOS-AI/hatidata-core/releases",
+    },
+    packages=find_namespace_packages(include=["dbt", "dbt.*"]),
+    include_package_data=True,
+    install_requires=[
+        "dbt-core>=1.7.0,<2.0.0",
+        "dbt-postgres>=1.7.0,<2.0.0",
+        "psycopg2-binary>=2.9",
+    ],
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Topic :: Database",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    ],
+    python_requires=">=3.9",
+    license="Apache-2.0",
+)

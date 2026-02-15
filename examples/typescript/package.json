@@ -1,0 +1,16 @@
+{
+  "name": "hatidata-examples-typescript",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "quickstart": "npx tsx quickstart.ts",
+    "local": "npx tsx local_mode.ts"
+  },
+  "dependencies": {
+    "@hatidata/sdk": "^0.1.0",
+    "@duckdb/duckdb-wasm": "^1.28.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0"
+  }
+}

@@ -1,0 +1,34 @@
+[package]
+name = "hatidata-cli"
+version = "0.1.0"
+edition = "2021"
+description = "HatiData CLI — local-first data warehouse for AI agents"
+license = "Apache-2.0"
+authors = ["Marviy Pte Ltd <eng@hatidata.com>"]
+repository = "https://github.com/HatiOS-AI/hatidata-core"
+homepage = "https://hatidata.com"
+readme = "README.md"
+keywords = ["data-warehouse", "duckdb", "ai-agents", "sql", "snowflake"]
+categories = ["database", "command-line-utilities"]
+default-run = "hati"
+
+[[bin]]
+name = "hati"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }
+duckdb = { version = "1.0", features = ["bundled"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+dirs = "5"
+colored = "2"
+comfy-table = "7"
+anyhow = "1"
+chrono = { version = "0.4", features = ["serde"] }
+
+[dev-dependencies]
+tempfile = "3"

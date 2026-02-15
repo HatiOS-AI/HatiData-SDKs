@@ -1,0 +1,12 @@
+hatidata_sample:
+  target: dev
+  outputs:
+    dev:
+      type: hatidata
+      host: localhost
+      port: 5439
+      user: admin
+      password: ""
+      database: main
+      schema: main
+      threads: 4

@@ -1,0 +1,11 @@
+id,name,email,region,department,created_at
+1,Alice Johnson,alice@example.com,US-West,Engineering,2024-01-15
+2,Bob Smith,bob@example.com,US-East,Sales,2024-02-20
+3,Carol Williams,,EU-West,Marketing,2024-03-10
+4,David Brown,david@example.com,US-West,Engineering,2024-04-05
+5,Eve Davis,eve@example.com,APAC,Product,2024-05-12
+6,Frank Miller,,US-East,Sales,2024-06-18
+7,Grace Lee,grace@example.com,EU-West,Engineering,2024-07-22
+8,Henry Wilson,henry@example.com,US-West,Marketing,2024-08-30
+9,Iris Chen,iris@example.com,APAC,Engineering,2024-09-15
+10,Jack Taylor,jack@example.com,US-East,Product,2024-10-01

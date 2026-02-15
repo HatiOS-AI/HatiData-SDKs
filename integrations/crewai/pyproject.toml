@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crewai-hatidata"
+version = "0.1.0"
+description = "CrewAI integration for HatiData — Memory and Tools backed by HatiData"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Marviy Pte Ltd", email = "eng@hatidata.com"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Database",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "hatidata-agent>=0.1.0",
+    "crewai>=0.30",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+]
+
+[project.urls]
+Homepage = "https://hatidata.com"
+Documentation = "https://docs.hatiosai.com/hatidata"
+Repository = "https://github.com/HatiOS-AI/hatidata-core"
+Changelog = "https://github.com/HatiOS-AI/hatidata-core/releases"
+
+[tool.setuptools.packages.find]
+where = ["."]

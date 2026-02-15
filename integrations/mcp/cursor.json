@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "hatidata": {
+      "command": "hatidata-mcp-server",
+      "args": [
+        "--host", "localhost",
+        "--port", "5439",
+        "--agent-id", "cursor-agent",
+        "--database", "hatidata"
+      ]
+    }
+  }
+}

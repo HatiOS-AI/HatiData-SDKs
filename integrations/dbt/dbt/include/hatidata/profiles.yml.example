@@ -1,0 +1,30 @@
+hatidata_project:
+  target: dev
+  outputs:
+    dev:
+      type: hatidata
+      host: "{{ env_var('HATIDATA_HOST', 'localhost') }}"
+      port: 5439
+      user: "{{ env_var('HATIDATA_USER', 'analyst') }}"
+      password: "{{ env_var('HATIDATA_API_KEY') }}"
+      database: iceberg_catalog
+      schema: analytics
+      environment: development
+      api_key: "{{ env_var('HATIDATA_API_KEY') }}"
+      auto_transpile: true
+      threads: 4
+      connect_timeout: 30
+
+    prod:
+      type: hatidata
+      host: "{{ env_var('HATIDATA_PROD_HOST') }}"
+      port: 5439
+      user: "{{ env_var('HATIDATA_PROD_USER') }}"
+      password: "{{ env_var('HATIDATA_PROD_API_KEY') }}"
+      database: iceberg_catalog
+      schema: analytics
+      environment: production
+      api_key: "{{ env_var('HATIDATA_PROD_API_KEY') }}"
+      auto_transpile: true
+      threads: 8
+      connect_timeout: 30

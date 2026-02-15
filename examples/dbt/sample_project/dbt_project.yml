@@ -1,0 +1,8 @@
+name: hatidata_sample
+version: "1.0.0"
+
+profile: hatidata_sample
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+clean-targets: ["target", "dbt_packages"]
