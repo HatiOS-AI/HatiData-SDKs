@@ -44,7 +44,7 @@ pub async fn run(sql: Option<String>, file: Option<String>) -> Result<()> {
     );
 
     for row in &result.rows {
-        table.add_row(row.iter().map(|v| Cell::new(v)).collect::<Vec<_>>());
+        table.add_row(row.iter().map(Cell::new).collect::<Vec<_>>());
     }
 
     println!("{table}");

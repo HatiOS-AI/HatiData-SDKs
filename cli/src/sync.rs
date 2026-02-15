@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 /// Response from the control plane sync API.
 #[derive(Debug, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct SyncResponse {
     pub success: bool,
     pub message: String,
@@ -11,6 +12,7 @@ pub struct SyncResponse {
 
 /// Remote table schema returned by the control plane.
 #[derive(Debug, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct TableSchema {
     pub name: String,
     pub columns: Vec<ColumnSchema>,
@@ -18,6 +20,7 @@ pub struct TableSchema {
 
 /// Column schema information.
 #[derive(Debug, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct ColumnSchema {
     pub name: String,
     pub data_type: String,
@@ -31,6 +34,7 @@ pub struct SyncClient {
     _api_key: String,
 }
 
+#[allow(dead_code)]
 impl SyncClient {
     /// Create a new sync client.
     pub fn new(endpoint: &str, api_key: &str) -> Self {

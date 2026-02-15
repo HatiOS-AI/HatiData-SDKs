@@ -13,6 +13,7 @@ pub struct QueryResult {
 /// Information about a table in the local DuckDB database.
 pub struct TableInfo {
     pub name: String,
+    #[allow(dead_code)]
     pub schema: String,
 }
 
@@ -73,14 +74,9 @@ impl LocalEngine {
             .query_map([], |row| {
                 let mut values = Vec::new();
                 let mut i = 0;
-                loop {
-                    match row.get::<_, Value>(i) {
-                        Ok(val) => {
-                            values.push((i, val));
-                            i += 1;
-                        }
-                        Err(_) => break,
-                    }
+                while let Ok(val) = row.get::<_, Value>(i) {
+                    values.push((i, val));
+                    i += 1;
                 }
                 Ok(values)
             })
