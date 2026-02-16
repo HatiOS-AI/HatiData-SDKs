@@ -21,11 +21,11 @@ categories:
 
 tools:
   # SQL Tools
-  - name: run_sql
+  - name: query
     description: Execute a read-write SQL query against HatiData
     scope: query:write
 
-  - name: run_sql_readonly
+  - name: read_query
     description: Execute a read-only SQL query against HatiData
     scope: query:read
 
@@ -42,33 +42,33 @@ tools:
     scope: query:read
 
   - name: get_usage_stats
-    description: Get query usage statistics for the current session
+    description: Get row counts and estimated sizes for all tables
     scope: query:read
 
   # Memory Tools
   - name: store_memory
-    description: Store a key-value memory entry for the agent
+    description: Store a persistent memory entry for the agent
     scope: memory:write
 
   - name: search_memory
-    description: Search agent memory by key prefix or semantic query
+    description: Search agent memory by text similarity
     scope: memory:read
 
   - name: get_agent_state
-    description: Retrieve the current agent state object
+    description: Retrieve a persistent state value by key
     scope: memory:read
 
   - name: set_agent_state
-    description: Update the agent state object
+    description: Set a persistent state value
     scope: memory:write
 
   - name: delete_memory
-    description: Delete a memory entry by key
+    description: Delete a memory entry by ID
     scope: memory:write
 
   # Chain-of-Thought Tools
   - name: log_reasoning_step
-    description: Log a reasoning step in the agent's decision chain
+    description: Log a reasoning step in a hash-chained decision trail
     scope: cot:write
 
   - name: replay_decision
@@ -76,12 +76,12 @@ tools:
     scope: cot:read
 
   - name: get_session_history
-    description: Get the full session history of tool calls and results
+    description: List recent chain-of-thought sessions
     scope: cot:read
 
   # Trigger Tools
   - name: register_trigger
-    description: Register an event trigger that fires on data changes
+    description: Register a semantic trigger that fires on concept matches
     scope: trigger:write
 
   - name: list_triggers
@@ -89,16 +89,16 @@ tools:
     scope: trigger:read
 
   - name: delete_trigger
-    description: Delete a registered trigger
+    description: Disable a registered trigger
     scope: trigger:write
 
   - name: test_trigger
-    description: Test a trigger by simulating an event
+    description: Test if content would match a trigger
     scope: trigger:write
 
   # Branching Tools
   - name: branch_create
-    description: Create a query branch for isolated experimentation
+    description: Create an isolated data branch for experimentation
     scope: branch:create
 
   - name: branch_query

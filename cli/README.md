@@ -5,10 +5,7 @@ Local-first data warehouse for AI agents. Write Snowflake-compatible SQL, run it
 ## Install
 
 ```bash
-# Homebrew (macOS/Linux)
-brew install hatidata/tap/hati
-
-# Cargo
+# Cargo (macOS/Linux/Windows)
 cargo install hatidata-cli
 
 # Binary download

@@ -259,6 +259,174 @@ class HatiDataAgent:
         finally:
             chain._finalize()
 
+    # ── Memory convenience methods ────────────────────────────────────
+
+    _MEMORY_SCHEMA = "_hatidata_memory_local"
+
+    def _ensure_memory_schema(self) -> None:
+        """Create the memory schema and tables if they don't exist."""
+        schema = self._MEMORY_SCHEMA
+        conn = self._get_connection()
+        with conn.cursor() as cur:
+            cur.execute(f"CREATE SCHEMA IF NOT EXISTS \"{schema}\"")
+            cur.execute(f"""
+                CREATE TABLE IF NOT EXISTS "{schema}".agent_memories (
+                    memory_id   VARCHAR PRIMARY KEY,
+                    agent_id    VARCHAR NOT NULL,
+                    content     TEXT NOT NULL,
+                    memory_type VARCHAR NOT NULL DEFAULT 'fact',
+                    importance  DOUBLE DEFAULT 0.5,
+                    metadata    VARCHAR,
+                    created_at  VARCHAR DEFAULT (strftime(now(), '%Y-%m-%dT%H:%M:%SZ')),
+                    last_accessed_at VARCHAR DEFAULT (strftime(now(), '%Y-%m-%dT%H:%M:%SZ'))
+                )
+            """)
+            cur.execute(f"""
+                CREATE TABLE IF NOT EXISTS "{schema}".agent_state (
+                    agent_id   VARCHAR NOT NULL,
+                    key        VARCHAR NOT NULL,
+                    value      VARCHAR NOT NULL,
+                    version    BIGINT DEFAULT 1,
+                    updated_at VARCHAR DEFAULT (strftime(now(), '%Y-%m-%dT%H:%M:%SZ')),
+                    PRIMARY KEY (agent_id, key)
+                )
+            """)
+
+    def store_memory(
+        self,
+        content: str,
+        memory_type: str = "fact",
+        metadata: Optional[dict[str, Any]] = None,
+        importance: float = 0.5,
+    ) -> str:
+        """Store a memory in the agent memory table.
+
+        Args:
+            content: The memory content text.
+            memory_type: Type of memory (fact, observation, instruction, etc.).
+            metadata: Optional JSON metadata dict.
+            importance: Importance score 0.0-1.0 (default 0.5).
+
+        Returns:
+            The generated memory_id (UUID string).
+        """
+        self._ensure_memory_schema()
+        memory_id = uuid.uuid4().hex
+        meta_json = json.dumps(metadata) if metadata else None
+        schema = self._MEMORY_SCHEMA
+        self.execute(
+            f'INSERT INTO "{schema}".agent_memories '
+            f"(memory_id, agent_id, content, memory_type, importance, metadata) "
+            f"VALUES (%s, %s, %s, %s, %s, %s)",
+            (memory_id, self.agent_id, content, memory_type, importance, meta_json),
+        )
+        return memory_id
+
+    def search_memory(
+        self,
+        query: str,
+        top_k: int = 10,
+        memory_type: Optional[str] = None,
+        min_importance: Optional[float] = None,
+    ) -> list[dict[str, Any]]:
+        """Search stored memories by text similarity.
+
+        Uses ILIKE text matching with ordering by importance and recency.
+        For full vector similarity search, use the MCP server connected to
+        a running proxy with Qdrant enabled.
+
+        Args:
+            query: Search query text.
+            top_k: Maximum results to return.
+            memory_type: Optional filter by memory type.
+            min_importance: Optional minimum importance threshold.
+
+        Returns:
+            List of matching memory dicts.
+        """
+        self._ensure_memory_schema()
+        schema = self._MEMORY_SCHEMA
+        conditions = [f"agent_id = '{self.agent_id}'"]
+        # Build search condition using keywords from the query
+        words = [w.strip() for w in query.split() if len(w.strip()) > 2]
+        if words:
+            like_clauses = " OR ".join(f"content ILIKE '%{w}%'" for w in words)
+            conditions.append(f"({like_clauses})")
+        if memory_type:
+            conditions.append(f"memory_type = '{memory_type}'")
+        if min_importance is not None:
+            conditions.append(f"importance >= {min_importance}")
+
+        where = " AND ".join(conditions)
+        sql = (
+            f'SELECT * FROM "{schema}".agent_memories '
+            f"WHERE {where} "
+            f"ORDER BY importance DESC, created_at DESC "
+            f"LIMIT {top_k}"
+        )
+        return self.query(sql)
+
+    def get_state(self, key: str) -> Optional[Any]:
+        """Get an agent state value by key.
+
+        Args:
+            key: The state key.
+
+        Returns:
+            The JSON-decoded value, or None if the key doesn't exist.
+        """
+        self._ensure_memory_schema()
+        schema = self._MEMORY_SCHEMA
+        rows = self.query(
+            f'SELECT value FROM "{schema}".agent_state '
+            f"WHERE agent_id = %s AND key = %s",
+            (self.agent_id, key),
+        )
+        if rows:
+            try:
+                return json.loads(rows[0]["value"])
+            except (json.JSONDecodeError, KeyError):
+                return rows[0].get("value")
+        return None
+
+    def set_state(self, key: str, value: Any) -> None:
+        """Set an agent state value.
+
+        Args:
+            key: The state key.
+            value: The value (will be JSON-encoded).
+        """
+        self._ensure_memory_schema()
+        schema = self._MEMORY_SCHEMA
+        json_val = json.dumps(value)
+        self.execute(
+            f'INSERT INTO "{schema}".agent_state (agent_id, key, value) '
+            f"VALUES (%s, %s, %s) "
+            f"ON CONFLICT (agent_id, key) DO UPDATE "
+            f"SET value = EXCLUDED.value, version = \"{schema}\".agent_state.version + 1, "
+            f"updated_at = strftime(now(), '%Y-%m-%dT%H:%M:%SZ')",
+            (self.agent_id, key, json_val),
+        )
+
+    def delete_memory(self, memory_id: str) -> bool:
+        """Delete a memory by ID.
+
+        Args:
+            memory_id: The memory UUID to delete.
+
+        Returns:
+            True if a row was deleted, False if not found.
+        """
+        self._ensure_memory_schema()
+        schema = self._MEMORY_SCHEMA
+        count = self.execute(
+            f'DELETE FROM "{schema}".agent_memories WHERE memory_id = %s',
+            (memory_id,),
+        )
+        return count > 0
+
+    # ── End memory methods ──────────────────────────────────────────
+
     def _maybe_transpile(self, sql: str) -> str:
         """Transpile hybrid SQL via cloud API if the query uses hybrid syntax.
 

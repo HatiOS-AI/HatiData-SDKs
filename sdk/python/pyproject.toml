@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hatidata-agent"
-version = "0.1.0"
+version = "0.2.0"
 description = "HatiData Agent SDK — RAM for Agents"
 readme = "README.md"
 license = {text = "Apache-2.0"}
@@ -31,7 +31,7 @@ dependencies = [
 [project.optional-dependencies]
 async = ["asyncpg>=0.29"]
 langchain = ["langchain-community>=0.2"]
-mcp = ["mcp>=1.0"]
+mcp = ["mcp>=1.0", "duckdb>=1.0"]
 all = [
     "asyncpg>=0.29",
     "langchain-community>=0.2",

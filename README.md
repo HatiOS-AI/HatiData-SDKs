@@ -50,7 +50,7 @@ from hatidata_agent import HatiDataAgent
 
 agent = HatiDataAgent(
     host="localhost", port=5439,
-    agent_id="my-agent", agent_framework="langchain"
+    agent_id="my-agent", framework="langchain"
 )
 rows = agent.query("SELECT * FROM customers WHERE region = 'US'")
 ```
@@ -67,12 +67,14 @@ const result = await client.query('SELECT * FROM customers');
 
 ### MCP (Claude, Cursor, Cline)
 
+23 tools across 5 categories: SQL, Memory, Chain-of-Thought, Triggers, and Branches.
+
 ```json
 {
   "mcpServers": {
     "hatidata": {
       "command": "hatidata-mcp-server",
-      "args": ["--host", "localhost", "--port", "5439"]
+      "args": ["--host", "localhost", "--port", "5439", "--agent-id", "my-agent", "--database", "hatidata"]
     }
   }
 }
