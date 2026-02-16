@@ -78,6 +78,46 @@ const result = await client.query('SELECT * FROM customers');
 }
 ```
 
+## Hybrid SQL
+
+Combine structured queries with semantic search. Standard SQL runs locally — hybrid SQL transparently transpiles via the HatiData cloud API (50 free queries/day).
+
+```python
+from hatidata_agent import HatiDataAgent
+
+agent = HatiDataAgent(
+    host="localhost", port=5439,
+    cloud_key="hd_live_..."  # free at hatidata.com/signup
+)
+
+# Semantic search — find similar tickets
+rows = agent.query("""
+    SELECT ticket_id, subject, body
+    FROM support_tickets
+    WHERE semantic_match(embedding, 'billing dispute')
+    ORDER BY semantic_rank(embedding, 'billing dispute') DESC
+    LIMIT 10
+""")
+
+# Hybrid join — enrich with knowledge base
+rows = agent.query("""
+    SELECT t.ticket_id, k.article_title, k.solution
+    FROM support_tickets t
+    JOIN_VECTOR knowledge_base k ON semantic_match(k.embedding, t.subject)
+    WHERE t.status = 'open'
+""")
+```
+
+| Function | Returns | Use In |
+|----------|---------|--------|
+| `semantic_match(col, 'text')` | boolean | WHERE, JOIN ON |
+| `semantic_match(col, 'text', 0.8)` | boolean | WHERE (custom threshold) |
+| `semantic_rank(col, 'text')` | float | ORDER BY, SELECT |
+| `vector_match(col, 'text')` | boolean | Alias for semantic_match |
+| `JOIN_VECTOR table ON ...` | — | Semantic joins |
+
+Get a free cloud key: [hatidata.com/signup](https://hatidata.com/signup). Full reference: [docs.hatidata.com/sql-reference/hybrid-search](https://docs.hatidata.com/sql-reference/hybrid-search).
+
 ## Packages
 
 | Package | Install | Description |

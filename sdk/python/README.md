@@ -52,6 +52,38 @@ print(rows)  # [{"id": 1, "name": "Acme Corp", ...}, ...]
 - **Agent identification** -- Per-agent billing, priority scheduling, and audit via Postgres startup parameters
 - **Snowflake SQL compatible** -- Bring existing queries without rewrites
 
+## Hybrid SQL
+
+Combine structured queries with semantic search. Standard SQL runs locally with zero cloud dependency. Hybrid SQL (JOIN_VECTOR, semantic_match, etc.) is transparently transpiled via the HatiData cloud API.
+
+```python
+from hatidata_agent import HatiDataAgent
+
+agent = HatiDataAgent(
+    host="localhost", port=5439,
+    cloud_key="hd_live_..."  # free at hatidata.com/signup
+)
+
+# Semantic search
+rows = agent.query("""
+    SELECT ticket_id, subject
+    FROM support_tickets
+    WHERE semantic_match(embedding, 'billing dispute refund')
+    ORDER BY semantic_rank(embedding, 'billing dispute refund') DESC
+    LIMIT 10
+""")
+
+# Hybrid join
+rows = agent.query("""
+    SELECT t.ticket_id, k.article_title, k.solution
+    FROM support_tickets t
+    JOIN_VECTOR knowledge_base k ON semantic_match(k.embedding, t.subject)
+    WHERE t.status = 'open'
+""")
+```
+
+Get a free cloud key (50 queries/day) at [hatidata.com/signup](https://hatidata.com/signup). You can also set the `HATIDATA_CLOUD_KEY` env var or run `hati login`.
+
 ## Reasoning Chain Tracking
 
 Track multi-step reasoning chains for audit and debugging:

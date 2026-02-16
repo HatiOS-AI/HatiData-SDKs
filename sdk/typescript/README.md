@@ -42,6 +42,42 @@ console.log(tables); // [{ name: "sales", schema: "main", columnCount: 5, rowCou
 await client.close();
 ```
 
+### Hybrid SQL
+
+Combine structured queries with semantic search. Standard SQL runs locally — hybrid SQL is transparently transpiled via the HatiData cloud API (50 free queries/day).
+
+```typescript
+import { HatiDataClient } from "@hatidata/sdk";
+
+const client = new HatiDataClient({
+  host: "localhost",
+  port: 8080,
+  apiKey: "hd_your_api_key",
+  cloudKey: "hd_live_...", // free at hatidata.com/signup
+});
+
+await client.connect();
+
+// Semantic search
+const tickets = await client.query(`
+  SELECT ticket_id, subject
+  FROM support_tickets
+  WHERE semantic_match(embedding, 'billing dispute')
+  ORDER BY semantic_rank(embedding, 'billing dispute') DESC
+  LIMIT 10
+`);
+
+// Hybrid join
+const enriched = await client.query(`
+  SELECT t.ticket_id, k.article_title, k.solution
+  FROM support_tickets t
+  JOIN_VECTOR knowledge_base k ON semantic_match(k.embedding, t.subject)
+  WHERE t.status = 'open'
+`);
+```
+
+You can also set the `HATIDATA_CLOUD_KEY` env var instead of passing `cloudKey`.
+
 ### Local Mode (No Server)
 
 Run queries entirely in-process using DuckDB-WASM -- perfect for development, testing, and edge workloads.
@@ -150,14 +186,16 @@ try {
 
 ```typescript
 interface HatiDataConfig {
-  host?: string;      // Default: "localhost"
-  port?: number;      // Default: 8080
-  database?: string;  // Default: "default"
+  host?: string;          // Default: "localhost"
+  port?: number;          // Default: 8080
+  database?: string;      // Default: "default"
   user?: string;
   password?: string;
-  apiKey?: string;     // Takes precedence over user/password
-  ssl?: boolean;       // Default: false
-  timeout?: number;    // Default: 30000 (ms)
+  apiKey?: string;         // Takes precedence over user/password
+  ssl?: boolean;           // Default: false
+  timeout?: number;        // Default: 30000 (ms)
+  cloudKey?: string;       // For hybrid SQL (from hatidata.com/signup)
+  cloudEndpoint?: string;  // Default: "https://api.hatidata.com"
 }
 ```
 
@@ -170,6 +208,8 @@ interface HatiDataConfig {
 | `QueryError` | `QUERY_ERROR` | Query execution failures (includes `sqlState`) |
 | `AuthenticationError` | `AUTHENTICATION_FAILED` | Invalid credentials |
 | `SyncError` | `SYNC_FAILED` | Push/pull sync failures |
+| `HybridSQLError` | `HYBRID_SQL_ERROR` | Hybrid SQL used without cloud key |
+| `TranspileQuotaError` | `QUOTA_EXCEEDED` | Daily hybrid SQL quota exceeded |
 
 ## Tiers
 

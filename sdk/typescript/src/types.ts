@@ -25,6 +25,31 @@ export interface HatiDataConfig {
 
   /** Query timeout in milliseconds. Defaults to 30000 (30 seconds). */
   timeout?: number;
+
+  /** API key for hybrid SQL transpilation (from hatidata.com/signup). */
+  cloudKey?: string;
+
+  /** HatiData cloud API URL. Defaults to "https://api.hatidata.com". */
+  cloudEndpoint?: string;
+}
+
+/**
+ * Request body for the /v1/transpile endpoint.
+ */
+export interface TranspileRequest {
+  sql: string;
+  dialect?: string;
+}
+
+/**
+ * Response from the /v1/transpile endpoint.
+ */
+export interface TranspileResponse {
+  sql: string;
+  hybrid: boolean;
+  embeddings_generated: number;
+  embedding_dimensions: number;
+  quota_remaining: number;
 }
 
 /**

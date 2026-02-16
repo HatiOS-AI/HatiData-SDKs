@@ -27,12 +27,34 @@ Usage::
 
 from __future__ import annotations
 
+import json
+import os
+import re
 import uuid
 from contextlib import contextmanager
+from pathlib import Path
 from typing import Any, Generator, Optional
 
 import psycopg2
 import psycopg2.extras
+
+# Keywords that indicate hybrid SQL requiring cloud transpilation.
+_HYBRID_SQL_KEYWORDS = re.compile(
+    r"\bJOIN_VECTOR\b|\bsemantic_match\b|\bvector_match\b|\bsemantic_rank\b",
+    re.IGNORECASE,
+)
+
+
+class HatiDataError(Exception):
+    """Base exception for HatiData SDK errors."""
+
+
+class HybridSQLError(HatiDataError):
+    """Raised when hybrid SQL is used without a cloud key."""
+
+
+class TranspileQuotaError(HatiDataError):
+    """Raised when the daily hybrid SQL quota is exceeded."""
 
 
 class HatiDataAgent:
@@ -52,6 +74,8 @@ class HatiDataAgent:
         password: Password (default empty for dev mode).
         priority: Query priority (low, normal, high, critical).
         connect_timeout: Connection timeout in seconds.
+        cloud_key: API key for hybrid SQL transpilation (from hatidata.com/signup).
+        cloud_endpoint: HatiData cloud API URL (default: https://api.hatidata.com).
     """
 
     def __init__(
@@ -65,6 +89,8 @@ class HatiDataAgent:
         password: str = "",
         priority: str = "normal",
         connect_timeout: int = 10,
+        cloud_key: Optional[str] = None,
+        cloud_endpoint: str = "https://api.hatidata.com",
     ):
         self.host = host
         self.port = port
@@ -76,6 +102,10 @@ class HatiDataAgent:
         self.priority = priority
         self.connect_timeout = connect_timeout
         self._conn: Optional[psycopg2.extensions.connection] = None
+
+        # Hybrid SQL cloud transpilation
+        self.cloud_endpoint = cloud_endpoint.rstrip("/")
+        self.cloud_key = cloud_key or os.environ.get("HATIDATA_CLOUD_KEY") or _load_config_key()
 
     def _get_connection(self) -> psycopg2.extensions.connection:
         """Get or create a connection with agent startup params."""
@@ -110,6 +140,10 @@ class HatiDataAgent:
     ) -> list[dict[str, Any]]:
         """Execute a SQL query and return results as a list of dicts.
 
+        If the query contains hybrid SQL syntax (JOIN_VECTOR, semantic_match,
+        etc.), it is transparently transpiled via the HatiData cloud API before
+        local execution. Standard SQL queries run directly without any cloud call.
+
         Args:
             sql: SQL query string.
             params: Optional query parameters (for parameterized queries).
@@ -117,7 +151,14 @@ class HatiDataAgent:
 
         Returns:
             List of row dicts with column names as keys.
+
+        Raises:
+            HybridSQLError: If hybrid SQL is used without a cloud_key.
+            TranspileQuotaError: If the daily hybrid SQL quota is exceeded.
         """
+        # Transparently transpile hybrid SQL if needed
+        effective_sql = self._maybe_transpile(sql)
+
         conn = self._get_connection()
 
         # Set request_id for this query if provided.
@@ -126,7 +167,7 @@ class HatiDataAgent:
                 cur.execute(f"SET hatidata_request_id = '{request_id}'")
 
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute(sql, params)
+            cur.execute(effective_sql, params)
             if cur.description:
                 return [dict(row) for row in cur.fetchall()]
             return []
@@ -218,6 +259,47 @@ class HatiDataAgent:
         finally:
             chain._finalize()
 
+    def _maybe_transpile(self, sql: str) -> str:
+        """Transpile hybrid SQL via cloud API if the query uses hybrid syntax.
+
+        Standard SQL is returned unchanged. Hybrid SQL (JOIN_VECTOR,
+        semantic_match, vector_match, semantic_rank) is sent to the HatiData
+        cloud transpilation endpoint which rewrites it and resolves embeddings.
+        """
+        if not _HYBRID_SQL_KEYWORDS.search(sql):
+            return sql
+
+        if not self.cloud_key:
+            raise HybridSQLError(
+                "Hybrid SQL (JOIN_VECTOR, semantic_match, etc.) requires a cloud key. "
+                "Get a free key at https://hatidata.com/signup, then pass cloud_key= "
+                "to HatiDataAgent() or set HATIDATA_CLOUD_KEY env var."
+            )
+
+        import requests
+
+        resp = requests.post(
+            f"{self.cloud_endpoint}/v1/transpile",
+            json={"sql": sql},
+            headers={"Authorization": f"ApiKey {self.cloud_key}"},
+            timeout=30,
+        )
+
+        if resp.status_code == 429:
+            body = resp.json()
+            raise TranspileQuotaError(
+                body.get("error", "Daily hybrid SQL quota exceeded. "
+                          "Upgrade at https://hatidata.com/pricing")
+            )
+
+        if not resp.ok:
+            raise HatiDataError(
+                f"Transpilation failed ({resp.status_code}): {resp.text}"
+            )
+
+        result = resp.json()
+        return result["sql"]
+
     def close(self) -> None:
         """Close the underlying database connection."""
         if self._conn and not self._conn.closed:
@@ -281,3 +363,15 @@ class ReasoningChain:
                 cur.execute("SET hatidata_reasoning_step = ''")
         except Exception:
             pass
+
+
+def _load_config_key() -> Optional[str]:
+    """Load cloud_key from ~/.hatidata/config.json if it exists."""
+    config_path = Path.home() / ".hatidata" / "config.json"
+    if config_path.exists():
+        try:
+            data = json.loads(config_path.read_text())
+            return data.get("cloud_key")
+        except (json.JSONDecodeError, OSError):
+            pass
+    return None

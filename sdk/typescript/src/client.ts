@@ -5,12 +5,16 @@ import type {
   PullOptions,
   TableInfo,
   ConnectionState,
+  TranspileRequest,
+  TranspileResponse,
 } from "./types.js";
 import {
   ConnectionError,
   QueryError,
   AuthenticationError,
   SyncError,
+  HybridSQLError,
+  TranspileQuotaError,
 } from "./errors.js";
 
 /** Default configuration values. */
@@ -20,7 +24,12 @@ const DEFAULTS = {
   database: "default",
   ssl: false,
   timeout: 30_000,
+  cloudEndpoint: "https://api.hatidata.com",
 } as const;
+
+/** Keywords that indicate hybrid SQL requiring cloud transpilation. */
+const HYBRID_SQL_PATTERN =
+  /\bJOIN_VECTOR\b|\bsemantic_match\b|\bvector_match\b|\bsemantic_rank\b/i;
 
 /**
  * HatiData client for connecting to a HatiData control plane via HTTP API.
@@ -47,6 +56,8 @@ export class HatiDataClient {
   private _state: ConnectionState = "disconnected";
   private baseUrl: string;
   private abortController: AbortController | null = null;
+  private readonly cloudKey: string | undefined;
+  private readonly cloudEndpoint: string;
 
   constructor(config: HatiDataConfig) {
     this.config = {
@@ -56,6 +67,11 @@ export class HatiDataClient {
 
     const protocol = this.config.ssl ? "https" : "http";
     this.baseUrl = `${protocol}://${this.config.host}:${this.config.port}`;
+    this.cloudKey =
+      config.cloudKey ?? process.env.HATIDATA_CLOUD_KEY ?? undefined;
+    this.cloudEndpoint = (
+      config.cloudEndpoint ?? DEFAULTS.cloudEndpoint
+    ).replace(/\/$/, "");
   }
 
   /**
@@ -139,6 +155,9 @@ export class HatiDataClient {
   async query(sql: string, params?: unknown[]): Promise<QueryResult> {
     this.ensureConnected();
 
+    // Transparently transpile hybrid SQL if needed
+    const effectiveSql = await this.maybeTranspile(sql);
+
     const startTime = Date.now();
 
     try {
@@ -149,7 +168,7 @@ export class HatiDataClient {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          sql,
+          sql: effectiveSql,
           params: params ?? [],
           database: this.config.database,
         }),
@@ -392,6 +411,56 @@ export class HatiDataClient {
   }
 
   // ── Private helpers ────────────────────────────────────────────────
+
+  /**
+   * Transparently transpile hybrid SQL via the HatiData cloud API.
+   * Standard SQL is returned unchanged.
+   */
+  private async maybeTranspile(sql: string): Promise<string> {
+    if (!HYBRID_SQL_PATTERN.test(sql)) {
+      return sql;
+    }
+
+    if (!this.cloudKey) {
+      throw new HybridSQLError(
+        "Hybrid SQL (JOIN_VECTOR, semantic_match, etc.) requires a cloud key. " +
+          "Get a free key at https://hatidata.com/signup, then pass cloudKey " +
+          "to HatiDataClient() or set HATIDATA_CLOUD_KEY env var."
+      );
+    }
+
+    const response = await fetch(`${this.cloudEndpoint}/v1/transpile`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `ApiKey ${this.cloudKey}`,
+      },
+      body: JSON.stringify({ sql } satisfies TranspileRequest),
+      signal: AbortSignal.timeout(this.config.timeout),
+    });
+
+    if (response.status === 429) {
+      const body = (await response.json()) as {
+        error?: string;
+        upgrade_url?: string;
+      };
+      throw new TranspileQuotaError(
+        body.error ??
+          "Daily hybrid SQL quota exceeded. Upgrade at https://hatidata.com/pricing",
+        body.upgrade_url
+      );
+    }
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new HybridSQLError(
+        `Transpilation failed (${response.status}): ${text}`
+      );
+    }
+
+    const result = (await response.json()) as TranspileResponse;
+    return result.sql;
+  }
 
   private ensureConnected(): void {
     if (this._state !== "connected") {

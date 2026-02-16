@@ -57,3 +57,27 @@ export class SyncError extends HatiDataError {
     this.name = "SyncError";
   }
 }
+
+/**
+ * Thrown when hybrid SQL is used without a cloud key.
+ */
+export class HybridSQLError extends HatiDataError {
+  constructor(message: string) {
+    super(message, "HYBRID_SQL_ERROR");
+    this.name = "HybridSQLError";
+  }
+}
+
+/**
+ * Thrown when the daily hybrid SQL transpilation quota is exceeded.
+ */
+export class TranspileQuotaError extends HatiDataError {
+  /** URL to upgrade plan. */
+  readonly upgradeUrl: string;
+
+  constructor(message: string, upgradeUrl: string = "https://hatidata.com/pricing") {
+    super(message, "QUOTA_EXCEEDED");
+    this.name = "TranspileQuotaError";
+    this.upgradeUrl = upgradeUrl;
+  }
+}
