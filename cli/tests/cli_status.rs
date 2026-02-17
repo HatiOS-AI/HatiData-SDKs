@@ -16,8 +16,8 @@ fn test_status_shows_local_tables() {
     drop(conn);
 
     // Use LocalEngine to verify what status would show
-    let engine = hatidata_cli::local_engine::LocalEngine::open(&db_path)
-        .expect("Failed to open engine");
+    let engine =
+        hatidata_cli::local_engine::LocalEngine::open(&db_path).expect("Failed to open engine");
 
     let tables = engine.list_tables().expect("Failed to list tables");
     assert_eq!(tables.len(), 1);
@@ -37,8 +37,8 @@ fn test_status_empty_database() {
     let db_path = hati_dir.join("local.duckdb");
     let _conn = duckdb::Connection::open(&db_path).expect("Failed to open DuckDB");
 
-    let engine = hatidata_cli::local_engine::LocalEngine::open(&db_path)
-        .expect("Failed to open engine");
+    let engine =
+        hatidata_cli::local_engine::LocalEngine::open(&db_path).expect("Failed to open engine");
 
     let tables = engine.list_tables().expect("Failed to list tables");
     assert!(tables.is_empty(), "Fresh database should have no tables");
@@ -112,8 +112,8 @@ fn test_status_multiple_tables() {
         .expect("Failed to create triggers");
     drop(conn);
 
-    let engine = hatidata_cli::local_engine::LocalEngine::open(&db_path)
-        .expect("Failed to open engine");
+    let engine =
+        hatidata_cli::local_engine::LocalEngine::open(&db_path).expect("Failed to open engine");
 
     let tables = engine.list_tables().expect("Failed to list tables");
     assert_eq!(tables.len(), 3);

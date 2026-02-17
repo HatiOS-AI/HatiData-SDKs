@@ -128,5 +128,8 @@ fn test_api_key_redaction_logic() {
     };
 
     assert_eq!(display_value, "hd_live_...");
-    assert!(!display_value.contains("abcdef"), "API key should be redacted");
+    assert!(
+        !display_value.contains("abcdef"),
+        "API key should be redacted"
+    );
 }

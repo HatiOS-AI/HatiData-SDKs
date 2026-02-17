@@ -277,9 +277,7 @@ mod tests {
         let db_path = tmp.path().join("test.duckdb");
         let engine = LocalEngine::open(&db_path).unwrap();
 
-        engine
-            .execute_query("CREATE TABLE t (id INTEGER)")
-            .unwrap();
+        engine.execute_query("CREATE TABLE t (id INTEGER)").unwrap();
         assert_eq!(engine.table_row_count("t").unwrap(), 0);
 
         engine
@@ -311,7 +309,9 @@ mod tests {
             .unwrap();
 
         let parquet_path = tmp.path().join("export.parquet");
-        engine.export_table_parquet("source", &parquet_path).unwrap();
+        engine
+            .export_table_parquet("source", &parquet_path)
+            .unwrap();
         assert!(parquet_path.exists());
 
         engine
@@ -330,9 +330,6 @@ mod tests {
         assert_eq!(value_to_string(&Value::Null), "NULL");
         assert_eq!(value_to_string(&Value::Boolean(true)), "true");
         assert_eq!(value_to_string(&Value::Int(42)), "42");
-        assert_eq!(
-            value_to_string(&Value::Text("hello".to_string())),
-            "hello"
-        );
+        assert_eq!(value_to_string(&Value::Text("hello".to_string())), "hello");
     }
 }
