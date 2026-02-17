@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dbt-hatidata"
-version = "0.1.0"
+version = "0.1.1"
 description = "dbt adapter for HatiData — Snowflake-compatible in-VPC data warehouse"
 readme = "README.md"
 license = {text = "Apache-2.0"}

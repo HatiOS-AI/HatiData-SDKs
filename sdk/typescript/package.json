@@ -1,6 +1,6 @@
 {
   "name": "@hatidata/sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "HatiData TypeScript SDK — RAM for Agents",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

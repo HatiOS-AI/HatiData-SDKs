@@ -20,5 +20,5 @@ Quick start::
 from hatidata_agent.client import HatiDataAgent
 from hatidata_agent.local_engine import LocalDuckDBEngine
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 __all__ = ["HatiDataAgent", "LocalDuckDBEngine"]

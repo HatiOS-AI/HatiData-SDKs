@@ -2,7 +2,7 @@ from setuptools import setup, find_namespace_packages
 
 setup(
     name="dbt-hatidata",
-    version="0.1.0",
+    version="0.1.1",
     description="dbt adapter for HatiData — Snowflake-compatible in-VPC data warehouse",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",

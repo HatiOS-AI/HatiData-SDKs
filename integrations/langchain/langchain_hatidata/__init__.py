@@ -21,5 +21,5 @@ from langchain_hatidata.memory import HatiDataMemory
 from langchain_hatidata.vectorstore import HatiDataVectorStore
 from langchain_hatidata.tools import HatiDataToolkit
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __all__ = ["HatiDataMemory", "HatiDataVectorStore", "HatiDataToolkit"]
