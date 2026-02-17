@@ -1,7 +1,7 @@
-use std::path::PathBuf;
-
 use anyhow::{bail, Context, Result};
 use colored::Colorize;
+
+use crate::context;
 
 const VALID_KEYS: &[&str] = &["cloud_endpoint", "api_key", "default_target", "org_id"];
 
@@ -14,9 +14,7 @@ pub async fn set(key: String, value: String) -> Result<()> {
         );
     }
 
-    let config_path = find_config_path()?;
-    let contents = std::fs::read_to_string(&config_path).context("Failed to read config.toml")?;
-    let mut config: toml::Table = contents.parse().context("Failed to parse config.toml")?;
+    let (config_path, mut config) = context::load_config_table()?;
 
     config.insert(key.clone(), toml::Value::String(value.clone()));
 
@@ -47,9 +45,7 @@ pub async fn get(key: String) -> Result<()> {
         );
     }
 
-    let config_path = find_config_path()?;
-    let contents = std::fs::read_to_string(&config_path).context("Failed to read config.toml")?;
-    let config: toml::Table = contents.parse().context("Failed to parse config.toml")?;
+    let (_config_path, config) = context::load_config_table()?;
 
     match config.get(&key) {
         Some(value) => {
@@ -76,9 +72,7 @@ pub async fn get(key: String) -> Result<()> {
 }
 
 pub async fn list() -> Result<()> {
-    let config_path = find_config_path()?;
-    let contents = std::fs::read_to_string(&config_path).context("Failed to read config.toml")?;
-    let config: toml::Table = contents.parse().context("Failed to parse config.toml")?;
+    let (config_path, config) = context::load_config_table()?;
 
     println!("{}", "HatiData Configuration".bold().underline());
     println!(
@@ -111,20 +105,4 @@ pub async fn list() -> Result<()> {
     }
 
     Ok(())
-}
-
-fn find_config_path() -> Result<PathBuf> {
-    let mut dir = std::env::current_dir().context("Failed to get current directory")?;
-    loop {
-        let candidate = dir.join(".hati").join("config.toml");
-        if candidate.exists() {
-            return Ok(candidate);
-        }
-        if !dir.pop() {
-            bail!(
-                "No .hati/config.toml found. Run {} first.",
-                "hati init".cyan()
-            );
-        }
-    }
 }

@@ -1,15 +1,15 @@
-use std::path::PathBuf;
 use std::time::Instant;
 
 use anyhow::{bail, Context, Result};
 use colored::Colorize;
 use comfy_table::{Cell, Color, Table};
 
+use crate::context;
 use crate::local_engine::LocalEngine;
 
 pub async fn run(sql: Option<String>, file: Option<String>) -> Result<()> {
     let sql = resolve_sql(sql, file)?;
-    let db_path = find_db_path()?;
+    let db_path = context::find_db_path()?;
 
     println!(
         "{} Executing against {}",
@@ -68,22 +68,6 @@ fn resolve_sql(sql: Option<String>, file: Option<String>) -> Result<String> {
         }
         (None, None) => {
             bail!("Provide SQL as an argument or use --file <path.sql>")
-        }
-    }
-}
-
-fn find_db_path() -> Result<PathBuf> {
-    let mut dir = std::env::current_dir().context("Failed to get current directory")?;
-    loop {
-        let candidate = dir.join(".hati").join("local.duckdb");
-        if candidate.exists() {
-            return Ok(candidate);
-        }
-        if !dir.pop() {
-            bail!(
-                "No .hati/ directory found. Run {} first.",
-                "hati init".cyan()
-            );
         }
     }
 }

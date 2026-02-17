@@ -159,6 +159,26 @@ impl LocalEngine {
         }
     }
 
+    /// Import a Parquet file into a table, replacing existing data.
+    #[allow(dead_code)]
+    pub fn import_table_parquet(&self, table: &str, input: &Path) -> Result<()> {
+        // Validate table name
+        if !table.chars().all(|c| c.is_alphanumeric() || c == '_') {
+            anyhow::bail!("Invalid table name: {table}");
+        }
+
+        let input_str = input.display().to_string();
+        // DROP + CREATE from Parquet (replaces existing table)
+        let sql = format!(
+            "DROP TABLE IF EXISTS \"{table}\"; CREATE TABLE \"{table}\" AS SELECT * FROM read_parquet('{input_str}')"
+        );
+        self.conn
+            .execute_batch(&sql)
+            .with_context(|| format!("Failed to import parquet into {table}"))?;
+
+        Ok(())
+    }
+
     /// Export a table to a Parquet file.
     pub fn export_table_parquet(&self, table: &str, output: &Path) -> Result<()> {
         // Validate table name
@@ -199,5 +219,120 @@ fn value_to_string(value: &Value) -> String {
         Value::Timestamp(..) => format!("{value:?}"),
         Value::Interval { .. } => format!("{value:?}"),
         _ => format!("{value:?}"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_execute_ddl_and_select() {
+        let tmp = TempDir::new().unwrap();
+        let db_path = tmp.path().join("test.duckdb");
+        let engine = LocalEngine::open(&db_path).unwrap();
+
+        let result = engine
+            .execute_query("CREATE TABLE t (id INTEGER, name VARCHAR)")
+            .unwrap();
+        assert!(result.columns.is_empty());
+        assert!(result.rows.is_empty());
+
+        engine
+            .execute_query("INSERT INTO t VALUES (1, 'alice'), (2, 'bob')")
+            .unwrap();
+
+        let result = engine
+            .execute_query("SELECT id, name FROM t ORDER BY id")
+            .unwrap();
+        assert_eq!(result.columns, vec!["id", "name"]);
+        assert_eq!(result.rows.len(), 2);
+        assert_eq!(result.rows[0], vec!["1", "alice"]);
+        assert_eq!(result.rows[1], vec!["2", "bob"]);
+    }
+
+    #[test]
+    fn test_list_tables() {
+        let tmp = TempDir::new().unwrap();
+        let db_path = tmp.path().join("test.duckdb");
+        let engine = LocalEngine::open(&db_path).unwrap();
+
+        assert!(engine.list_tables().unwrap().is_empty());
+
+        engine
+            .execute_query("CREATE TABLE t1 (id INTEGER)")
+            .unwrap();
+        engine
+            .execute_query("CREATE TABLE t2 (id INTEGER)")
+            .unwrap();
+
+        let tables = engine.list_tables().unwrap();
+        assert_eq!(tables.len(), 2);
+    }
+
+    #[test]
+    fn test_table_row_count() {
+        let tmp = TempDir::new().unwrap();
+        let db_path = tmp.path().join("test.duckdb");
+        let engine = LocalEngine::open(&db_path).unwrap();
+
+        engine
+            .execute_query("CREATE TABLE t (id INTEGER)")
+            .unwrap();
+        assert_eq!(engine.table_row_count("t").unwrap(), 0);
+
+        engine
+            .execute_query("INSERT INTO t VALUES (1), (2), (3)")
+            .unwrap();
+        assert_eq!(engine.table_row_count("t").unwrap(), 3);
+    }
+
+    #[test]
+    fn test_table_row_count_rejects_invalid_name() {
+        let tmp = TempDir::new().unwrap();
+        let db_path = tmp.path().join("test.duckdb");
+        let engine = LocalEngine::open(&db_path).unwrap();
+
+        assert!(engine.table_row_count("DROP TABLE x; --").is_err());
+    }
+
+    #[test]
+    fn test_parquet_export_import_roundtrip() {
+        let tmp = TempDir::new().unwrap();
+        let db_path = tmp.path().join("test.duckdb");
+        let engine = LocalEngine::open(&db_path).unwrap();
+
+        engine
+            .execute_query("CREATE TABLE source (id INTEGER, val VARCHAR)")
+            .unwrap();
+        engine
+            .execute_query("INSERT INTO source VALUES (1, 'a'), (2, 'b'), (3, 'c')")
+            .unwrap();
+
+        let parquet_path = tmp.path().join("export.parquet");
+        engine.export_table_parquet("source", &parquet_path).unwrap();
+        assert!(parquet_path.exists());
+
+        engine
+            .import_table_parquet("imported", &parquet_path)
+            .unwrap();
+
+        let result = engine
+            .execute_query("SELECT id, val FROM imported ORDER BY id")
+            .unwrap();
+        assert_eq!(result.rows.len(), 3);
+        assert_eq!(result.rows[0], vec!["1", "a"]);
+    }
+
+    #[test]
+    fn test_value_to_string_types() {
+        assert_eq!(value_to_string(&Value::Null), "NULL");
+        assert_eq!(value_to_string(&Value::Boolean(true)), "true");
+        assert_eq!(value_to_string(&Value::Int(42)), "42");
+        assert_eq!(
+            value_to_string(&Value::Text("hello".to_string())),
+            "hello"
+        );
     }
 }

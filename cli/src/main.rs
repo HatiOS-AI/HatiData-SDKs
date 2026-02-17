@@ -1,4 +1,5 @@
 mod commands;
+mod context;
 mod local_engine;
 mod sync;
 

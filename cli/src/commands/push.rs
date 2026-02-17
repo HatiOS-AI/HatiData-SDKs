@@ -1,18 +1,16 @@
-use std::path::PathBuf;
-
 use anyhow::{bail, Context, Result};
 use colored::Colorize;
 
+use crate::context;
 use crate::local_engine::LocalEngine;
-use crate::sync::SyncClient;
 
 pub async fn run(target: String, tables: Option<String>) -> Result<()> {
     if target != "cloud" && target != "vpc" {
         bail!("Target must be 'cloud' or 'vpc', got '{target}'");
     }
 
-    let db_path = find_db_path()?;
-    let config = load_config()?;
+    let db_path = context::find_db_path()?;
+    let config = context::load_config()?;
 
     let cloud_endpoint = config
         .get("cloud_endpoint")
@@ -58,8 +56,6 @@ pub async fn run(target: String, tables: Option<String>) -> Result<()> {
         return Ok(());
     }
 
-    let _client = SyncClient::new(cloud_endpoint, api_key);
-
     for table_name in &table_list {
         let row_count = engine.table_row_count(table_name).unwrap_or(0);
         println!(
@@ -75,66 +71,33 @@ pub async fn run(target: String, tables: Option<String>) -> Result<()> {
         let parquet_path = tmp_dir.join(format!("{table_name}.parquet"));
         engine.export_table_parquet(table_name, &parquet_path)?;
 
-        let _parquet_data = std::fs::read(&parquet_path)
-            .with_context(|| format!("Failed to read exported parquet for {table_name}"))?;
+        let size = std::fs::metadata(&parquet_path)
+            .map(|m| m.len())
+            .unwrap_or(0);
 
-        // TODO: Implement actual sync upload
-        // client.push_table(table_name, parquet_data).await?;
         println!(
-            "    {} Sync not yet implemented — parquet export ready ({} bytes)",
-            "!".yellow().bold(),
-            std::fs::metadata(&parquet_path)
-                .map(|m| m.len())
-                .unwrap_or(0)
+            "    {} Parquet export ready ({} bytes). Upgrade to Cloud tier for remote sync.",
+            "i".blue().bold(),
+            size
         );
+
+        // Clean up
+        let _ = std::fs::remove_file(&parquet_path);
+        let _ = std::fs::remove_dir(&tmp_dir);
     }
 
     println!();
     println!(
-        "{} Push complete ({} table{})",
+        "{} Local export verified ({} table{})",
         "OK".green().bold(),
         table_list.len(),
         if table_list.len() == 1 { "" } else { "s" }
     );
     println!(
-        "  {}",
-        "Note: Remote sync is not yet implemented. Parquet export verified locally.".dimmed()
+        "  {} Upgrade to Cloud tier for remote push/pull: {}",
+        "i".blue().bold(),
+        "https://hatidata.com/pricing".cyan()
     );
 
     Ok(())
-}
-
-fn find_db_path() -> Result<PathBuf> {
-    let mut dir = std::env::current_dir().context("Failed to get current directory")?;
-    loop {
-        let candidate = dir.join(".hati").join("local.duckdb");
-        if candidate.exists() {
-            return Ok(candidate);
-        }
-        if !dir.pop() {
-            bail!(
-                "No .hati/ directory found. Run {} first.",
-                "hati init".cyan()
-            );
-        }
-    }
-}
-
-fn load_config() -> Result<toml::Value> {
-    let mut dir = std::env::current_dir().context("Failed to get current directory")?;
-    loop {
-        let config_path = dir.join(".hati").join("config.toml");
-        if config_path.exists() {
-            let contents =
-                std::fs::read_to_string(&config_path).context("Failed to read config.toml")?;
-            let config: toml::Value = contents.parse().context("Failed to parse config.toml")?;
-            return Ok(config);
-        }
-        if !dir.pop() {
-            bail!(
-                "No .hati/config.toml found. Run {} first.",
-                "hati init".cyan()
-            );
-        }
-    }
 }

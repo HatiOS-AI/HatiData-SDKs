@@ -1,12 +1,11 @@
-use std::path::PathBuf;
-
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result};
 use colored::Colorize;
 
+use crate::context;
 use crate::local_engine::LocalEngine;
 
 pub async fn run() -> Result<()> {
-    let hati_dir = find_hati_dir()?;
+    let hati_dir = context::find_hati_dir()?;
     let db_path = hati_dir.join("local.duckdb");
     let config_path = hati_dir.join("config.toml");
 
@@ -98,25 +97,13 @@ pub async fn run() -> Result<()> {
     // Sync status
     println!();
     println!("  {}", "Sync:".bold());
-    println!("    {} No sync history yet", "-".dimmed());
+    println!(
+        "    {} Upgrade to Cloud tier for remote sync: {}",
+        "i".blue().bold(),
+        "https://hatidata.com/pricing".cyan()
+    );
 
     Ok(())
-}
-
-fn find_hati_dir() -> Result<PathBuf> {
-    let mut dir = std::env::current_dir().context("Failed to get current directory")?;
-    loop {
-        let candidate = dir.join(".hati");
-        if candidate.is_dir() {
-            return Ok(candidate);
-        }
-        if !dir.pop() {
-            bail!(
-                "No .hati/ directory found. Run {} first.",
-                "hati init".cyan()
-            );
-        }
-    }
 }
 
 fn format_bytes(bytes: u64) -> String {

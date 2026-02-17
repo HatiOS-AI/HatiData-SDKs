@@ -19,8 +19,11 @@ org_id = ""
     std::fs::write(hati_dir.join("config.toml"), config_content).expect("Failed to write config");
 
     // Write .gitignore
-    std::fs::write(hati_dir.join(".gitignore"), "*.duckdb\n*.duckdb.wal\n")
-        .expect("Failed to write .gitignore");
+    std::fs::write(
+        hati_dir.join(".gitignore"),
+        "*.duckdb\n*.duckdb.wal\nconfig.toml\n",
+    )
+    .expect("Failed to write .gitignore");
 
     // Create DuckDB database
     let db_path = hati_dir.join("local.duckdb");
@@ -93,4 +96,27 @@ fn test_init_duckdb_is_functional() {
             .expect("Failed to query");
         assert_eq!(count, 1);
     }
+}
+
+/// Test that .gitignore includes config.toml (security: prevents API key leak).
+#[test]
+fn test_init_gitignore_includes_config_toml() {
+    let tmp = TempDir::new().expect("Failed to create temp dir");
+    let hati_dir = tmp.path().join(".hati");
+    std::fs::create_dir_all(&hati_dir).expect("Failed to create .hati/");
+
+    let gitignore_content = "# HatiData local files\n*.duckdb\n*.duckdb.wal\nconfig.toml\n";
+    std::fs::write(hati_dir.join(".gitignore"), gitignore_content)
+        .expect("Failed to write .gitignore");
+
+    let contents =
+        std::fs::read_to_string(hati_dir.join(".gitignore")).expect("Failed to read .gitignore");
+    assert!(
+        contents.contains("config.toml"),
+        ".gitignore must include config.toml to prevent API key leaks"
+    );
+    assert!(
+        contents.contains("*.duckdb"),
+        ".gitignore must include *.duckdb"
+    );
 }

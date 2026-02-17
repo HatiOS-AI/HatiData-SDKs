@@ -24,6 +24,7 @@ org_id = ""
 const GITIGNORE: &str = r#"# HatiData local files
 *.duckdb
 *.duckdb.wal
+config.toml
 "#;
 
 pub async fn run(path: Option<String>) -> Result<()> {
