@@ -8,8 +8,14 @@ import psycopg2
 HATIDATA_HOST = os.environ.get("HATIDATA_HOST", "localhost")
 HATIDATA_PORT = int(os.environ.get("HATIDATA_PORT", "5439"))
 HATIDATA_USER = os.environ.get("HATIDATA_USER", "admin")
-HATIDATA_PASSWORD = os.environ.get("HATIDATA_PASSWORD", "admin")
+HATIDATA_PASSWORD = os.environ.get("HATIDATA_PASSWORD", "")
 HATIDATA_DATABASE = os.environ.get("HATIDATA_DATABASE", "iceberg_catalog")
+
+if not HATIDATA_PASSWORD:
+    pytest.skip(
+        "HATIDATA_PASSWORD env var required for dbt integration tests",
+        allow_module_level=True,
+    )
 
 
 @pytest.fixture(scope="session")

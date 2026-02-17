@@ -42,7 +42,7 @@ jobs:
       - name: Package
         run: |
           mkdir -p dist
-          cp ../target/${{ matrix.target }}/release/hati dist/hati-${{ matrix.target }}
+          cp target/${{ matrix.target }}/release/hati dist/hati-${{ matrix.target }}
           chmod +x dist/hati-${{ matrix.target }}
       - name: Upload artifact
         uses: actions/upload-artifact@v4
