@@ -1,13 +1,12 @@
-# HatiData
+# HatiData SDKs
 
 **Local-first data warehouse for AI agents.**
 
 Install in 30 seconds. Query in 60.
 
-[![CI](https://github.com/HatiOS-AI/HatiData-Core/actions/workflows/ci.yml/badge.svg)](https://github.com/HatiOS-AI/HatiData-Core/actions/workflows/ci.yml)
+[![CI](https://github.com/HatiOS-AI/HatiData-SDKs/actions/workflows/ci.yml/badge.svg)](https://github.com/HatiOS-AI/HatiData-SDKs/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/hatidata-agent)](https://pypi.org/project/hatidata-agent/)
 [![npm](https://img.shields.io/npm/v/@hatidata/sdk)](https://www.npmjs.com/package/@hatidata/sdk)
-[![crates.io](https://img.shields.io/crates/v/hatidata-cli)](https://crates.io/crates/hatidata-cli)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
 ---
@@ -15,11 +14,11 @@ Install in 30 seconds. Query in 60.
 ## 30-Second Install
 
 ```bash
+# CLI (macOS, Linux)
+curl -fsSL https://hatidata.com/install.sh | sh
+
 # Python
 pip install hatidata-agent
-
-# Rust CLI
-cargo install hatidata-cli
 
 # TypeScript / Node.js
 npm install @hatidata/sdk
@@ -143,7 +142,7 @@ Get a free cloud key: [hatidata.com/signup](https://hatidata.com/signup). Full r
 
 | Package | Install | Description |
 |---------|---------|-------------|
-| [`hatidata-cli`](cli/) | `cargo install hatidata-cli` | CLI (`hati` binary): local warehouse, auth, push/pull with tier enforcement |
+| `hati` CLI | `curl -fsSL https://hatidata.com/install.sh \| sh` | CLI binary: local warehouse, auth, push/pull with tier enforcement |
 | [`hatidata-agent`](sdk/python/) | `pip install hatidata-agent` | Python SDK with MCP server |
 | [`@hatidata/sdk`](sdk/typescript/) | `npm install @hatidata/sdk` | TypeScript / Node.js SDK |
 | [`dbt-hatidata`](integrations/dbt/) | `pip install dbt-hatidata` | dbt adapter |

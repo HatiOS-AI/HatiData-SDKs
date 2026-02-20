@@ -19,7 +19,7 @@ Please report security vulnerabilities to **security@hatidata.com**.
 
 ## Scope
 
-This policy covers the CLI, SDKs, and integrations in this repository.
+This policy covers the SDKs and integrations in this repository.
 
 Server-side components (proxy, control plane) are maintained in a separate private repository. Report those vulnerabilities to the same email address.
 

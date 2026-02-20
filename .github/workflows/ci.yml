@@ -6,20 +6,6 @@ on:
   pull_request:
 
 jobs:
-  cli:
-    name: CLI (Rust)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: cli
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo check
-      - run: cargo clippy -- -D warnings
-      - run: cargo fmt -- --check
-      - run: cargo test
-
   python-sdk:
     name: Python SDK (${{ matrix.python-version }})
     runs-on: ubuntu-latest

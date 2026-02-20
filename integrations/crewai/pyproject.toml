@@ -36,8 +36,8 @@ dev = [
 [project.urls]
 Homepage = "https://hatidata.com"
 Documentation = "https://docs.hatidata.com"
-Repository = "https://github.com/HatiOS-AI/HatiData-Core"
-Changelog = "https://github.com/HatiOS-AI/HatiData-Core/releases"
+Repository = "https://github.com/HatiOS-AI/HatiData-SDKs"
+Changelog = "https://github.com/HatiOS-AI/HatiData-SDKs/releases"
 
 [tool.setuptools.packages.find]
 where = ["."]

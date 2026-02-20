@@ -2,7 +2,7 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/langchain-hatidata.svg)](https://pypi.org/project/langchain-hatidata/)
 [![Python versions](https://img.shields.io/pypi/pyversions/langchain-hatidata.svg)](https://pypi.org/project/langchain-hatidata/)
-[![License](https://img.shields.io/pypi/l/langchain-hatidata.svg)](https://github.com/HatiOS-AI/HatiData-Core/blob/main/LICENSE)
+[![License](https://img.shields.io/pypi/l/langchain-hatidata.svg)](https://github.com/HatiOS-AI/HatiData-SDKs/blob/main/LICENSE)
 
 LangChain integration for [HatiData](https://hatidata.com) -- Memory, VectorStore, and Tools backed by HatiData's in-VPC data warehouse with agent-aware billing and audit.
 
@@ -53,4 +53,4 @@ Full documentation is available at [docs.hatidata.com](https://docs.hatidata.com
 
 ## License
 
-Apache License 2.0. Copyright (c) Marviy Pte Ltd. See [LICENSE](https://github.com/HatiOS-AI/HatiData-Core/blob/main/LICENSE) for details.
+Apache License 2.0. Copyright (c) Marviy Pte Ltd. See [LICENSE](https://github.com/HatiOS-AI/HatiData-SDKs/blob/main/LICENSE) for details.

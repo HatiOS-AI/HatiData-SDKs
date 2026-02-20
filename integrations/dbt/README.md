@@ -2,7 +2,7 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/dbt-hatidata.svg)](https://pypi.org/project/dbt-hatidata/)
 [![Python versions](https://img.shields.io/pypi/pyversions/dbt-hatidata.svg)](https://pypi.org/project/dbt-hatidata/)
-[![License](https://img.shields.io/pypi/l/dbt-hatidata.svg)](https://github.com/HatiOS-AI/HatiData-Core/blob/main/LICENSE)
+[![License](https://img.shields.io/pypi/l/dbt-hatidata.svg)](https://github.com/HatiOS-AI/HatiData-SDKs/blob/main/LICENSE)
 
 The [dbt](https://www.getdbt.com/) adapter for [HatiData](https://hatidata.com) In-VPC Data Warehouse.
 
@@ -134,4 +134,4 @@ HATIDATA_HOST=localhost RUN_FUNCTIONAL=true bash ci/run_dbt_tests.sh
 
 ## License
 
-Apache License 2.0. Copyright (c) Marviy Pte Ltd. See [LICENSE](https://github.com/HatiOS-AI/HatiData-Core/blob/main/LICENSE) for details.
+Apache License 2.0. Copyright (c) Marviy Pte Ltd. See [LICENSE](https://github.com/HatiOS-AI/HatiData-SDKs/blob/main/LICENSE) for details.

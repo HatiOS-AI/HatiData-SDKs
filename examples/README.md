@@ -12,7 +12,7 @@ Runnable examples for every HatiData package.
 | `typescript/quickstart.ts` | TypeScript | Connect and query | `npm install` |
 | `typescript/local_mode.ts` | TypeScript | DuckDB-WASM local engine | `npm install` |
 | `dbt/sample_project/` | SQL/YAML | Minimal dbt project | `pip install dbt-hatidata` |
-| `sql/*.sql` | SQL | Snowflake SQL samples | `hati` CLI |
+| `sql/*.sql` | SQL | Snowflake SQL samples | [hati CLI](https://hatidata.com/install.sh) |
 
 ## Running the examples
 
@@ -44,6 +44,7 @@ dbt run
 ### SQL
 
 ```bash
+# Install: curl -fsSL https://hatidata.com/install.sh | sh
 # Start HatiData locally, then run any SQL file:
 hati init my-warehouse
 psql -h localhost -p 5439 -U admin -f sql/001_basic_select.sql

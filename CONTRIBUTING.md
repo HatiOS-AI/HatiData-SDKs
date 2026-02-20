@@ -4,20 +4,10 @@ Thanks for your interest in contributing! This guide covers everything you need 
 
 ## Prerequisites
 
-- **Rust 1.77+** (for the CLI)
 - **Python 3.9+** (for the Python SDK and integrations)
 - **Node.js 18+** (for the TypeScript SDK)
 
 ## Development Setup
-
-### CLI (`cli/`)
-
-```bash
-cd cli
-cargo build
-cargo test
-cargo clippy
-```
 
 ### Python SDK (`sdk/python/`)
 
@@ -60,7 +50,6 @@ cd integrations/dbt && pip install -e ".[dev]" && pytest
 We use [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
-feat(cli): add hati export command
 fix(python-sdk): handle connection timeout
 docs: update quickstart example
 chore(ci): add Python 3.13 to test matrix

@@ -2,7 +2,7 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/crewai-hatidata.svg)](https://pypi.org/project/crewai-hatidata/)
 [![Python versions](https://img.shields.io/pypi/pyversions/crewai-hatidata.svg)](https://pypi.org/project/crewai-hatidata/)
-[![License](https://img.shields.io/pypi/l/crewai-hatidata.svg)](https://github.com/HatiOS-AI/HatiData-Core/blob/main/LICENSE)
+[![License](https://img.shields.io/pypi/l/crewai-hatidata.svg)](https://github.com/HatiOS-AI/HatiData-SDKs/blob/main/LICENSE)
 
 CrewAI integration for [HatiData](https://hatidata.com) -- Memory and Tools that let CrewAI agents query, explore, and persist data in HatiData's in-VPC warehouse.
 
@@ -54,4 +54,4 @@ Full documentation is available at [docs.hatidata.com](https://docs.hatidata.com
 
 ## License
 
-Apache License 2.0. Copyright (c) Marviy Pte Ltd. See [LICENSE](https://github.com/HatiOS-AI/HatiData-Core/blob/main/LICENSE) for details.
+Apache License 2.0. Copyright (c) Marviy Pte Ltd. See [LICENSE](https://github.com/HatiOS-AI/HatiData-SDKs/blob/main/LICENSE) for details.

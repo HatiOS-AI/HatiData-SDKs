@@ -69,7 +69,7 @@ pip install hatidata-agent
 Or initialize a local warehouse with the CLI:
 
 ```bash
-cargo install hatidata-cli
+curl -fsSL https://hatidata.com/install.sh | sh
 hati init my-warehouse
 ```
 
