@@ -2,6 +2,7 @@ mod commands;
 mod context;
 mod local_engine;
 mod sync;
+mod tier;
 
 use clap::{Parser, Subcommand};
 use colored::Colorize;
@@ -43,6 +44,10 @@ enum Commands {
         /// Comma-separated list of tables to push (default: all)
         #[arg(short = 'T', long)]
         tables: Option<String>,
+
+        /// Override tier for this operation (free, cloud, growth, enterprise)
+        #[arg(long)]
+        tier: Option<String>,
     },
     /// Pull schema and data from remote into local DuckDB
     Pull {
@@ -56,6 +61,17 @@ enum Commands {
     Config {
         #[command(subcommand)]
         action: ConfigAction,
+    },
+    /// Manage authentication (login, signup, status, logout, upgrade)
+    Auth {
+        #[command(subcommand)]
+        action: AuthAction,
+    },
+    /// Open HatiData dashboard in browser
+    Dashboard {
+        /// Dashboard page to open (billing, onboarding, agents, triggers, branches, cot, api-keys, policies)
+        #[arg(default_value = "")]
+        page: String,
     },
 }
 
@@ -77,6 +93,20 @@ enum ConfigAction {
     List,
 }
 
+#[derive(Subcommand)]
+enum AuthAction {
+    /// Login with email and password
+    Login,
+    /// Sign up for a new account
+    Signup,
+    /// Show current auth status
+    Status,
+    /// Log out and clear session
+    Logout,
+    /// Open billing/upgrade page
+    Upgrade,
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
@@ -92,7 +122,11 @@ async fn main() -> anyhow::Result<()> {
     match cli.command {
         Commands::Init { path } => commands::init::run(path).await,
         Commands::Query { sql, file } => commands::query::run(sql, file).await,
-        Commands::Push { target, tables } => commands::push::run(target, tables).await,
+        Commands::Push {
+            target,
+            tables,
+            tier,
+        } => commands::push::run(target, tables, tier).await,
         Commands::Pull { tables } => commands::pull::run(tables).await,
         Commands::Status => commands::status::run().await,
         Commands::Config { action } => match action {
@@ -100,5 +134,13 @@ async fn main() -> anyhow::Result<()> {
             ConfigAction::Get { key } => commands::config::get(key).await,
             ConfigAction::List => commands::config::list().await,
         },
+        Commands::Auth { action } => match action {
+            AuthAction::Login => commands::auth::login().await,
+            AuthAction::Signup => commands::auth::signup().await,
+            AuthAction::Status => commands::auth::status().await,
+            AuthAction::Logout => commands::auth::logout().await,
+            AuthAction::Upgrade => commands::auth::upgrade().await,
+        },
+        Commands::Dashboard { page } => commands::dashboard::run(page).await,
     }
 }

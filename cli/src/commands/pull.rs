@@ -2,22 +2,35 @@ use anyhow::{bail, Result};
 use colored::Colorize;
 
 use crate::context;
+use crate::tier::{self, TierLimits};
 
 pub async fn run(tables: Option<String>) -> Result<()> {
-    let _db_path = context::find_db_path()?;
+    // ── Auth gate: must be signed in ─────────────────────────────────────
     let config = context::load_config()?;
+    let (_endpoint, _api_key) = tier::require_auth(&config)?;
 
-    let cloud_endpoint = config
-        .get("cloud_endpoint")
-        .and_then(|v| v.as_str())
-        .unwrap_or("https://api.hatidata.com");
-    let api_key = config.get("api_key").and_then(|v| v.as_str()).unwrap_or("");
+    // ── Resolve tier ─────────────────────────────────────────────────────
+    let effective_tier = tier::resolve_tier(&config, None);
+    let limits = TierLimits::for_tier(effective_tier);
 
-    if api_key.is_empty() {
-        bail!(
-            "API key not configured. Run {} first.",
-            "hati config set api_key hd_live_...".cyan()
+    // ── Tier gate: pull requires Cloud or higher ─────────────────────────
+    if !limits.can_pull_data {
+        println!(
+            "{} Pull requires Cloud tier or higher. Current tier: {}",
+            "!".yellow().bold(),
+            effective_tier.display_name().bold()
         );
+        println!();
+        println!(
+            "  {} Free tier supports local-only mode (query, push export).",
+            "i".blue().bold()
+        );
+        println!(
+            "  {} Upgrade to Cloud ($29/mo) for remote sync: {}",
+            "i".blue().bold(),
+            "https://hatidata.com/pricing".cyan()
+        );
+        bail!("Pull requires Cloud tier or higher");
     }
 
     let table_filter = match &tables {
@@ -33,17 +46,28 @@ pub async fn run(tables: Option<String>) -> Result<()> {
     };
 
     println!(
-        "{} Pulling {} from {}",
+        "{} Pulling {} (tier: {})",
         ">".cyan().bold(),
         table_filter.bold(),
-        cloud_endpoint.dimmed()
+        effective_tier.display_name().dimmed()
     );
     println!();
     println!(
-        "  {} Remote pull requires Cloud tier. Upgrade at: {}",
+        "  {} Remote pull endpoint coming soon.",
         "i".blue().bold(),
-        "https://hatidata.com/pricing".cyan()
     );
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_pull_requires_auth() {
+        // No .hati/ dir → fails at load_config or require_auth
+        let result = run(None).await;
+        assert!(result.is_err());
+    }
 }

@@ -49,7 +49,7 @@ toolkit = HatiDataToolkit(host="proxy.internal", agent_id="my-agent")
 
 ## Documentation
 
-Full documentation is available at [docs.hatiosai.com/hatidata](https://docs.hatiosai.com/hatidata).
+Full documentation is available at [docs.hatidata.com](https://docs.hatidata.com).
 
 ## License
 

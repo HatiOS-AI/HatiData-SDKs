@@ -11,7 +11,7 @@ setup(
     url="https://github.com/HatiOS-AI/HatiData-Core",
     project_urls={
         "Homepage": "https://hatidata.com",
-        "Documentation": "https://docs.hatiosai.com/hatidata",
+        "Documentation": "https://docs.hatidata.com",
         "Repository": "https://github.com/HatiOS-AI/HatiData-Core",
         "Changelog": "https://github.com/HatiOS-AI/HatiData-Core/releases",
     },

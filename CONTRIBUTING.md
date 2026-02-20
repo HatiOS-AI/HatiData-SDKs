@@ -4,7 +4,7 @@ Thanks for your interest in contributing! This guide covers everything you need 
 
 ## Prerequisites
 
-- **Rust 1.75+** (for the CLI)
+- **Rust 1.77+** (for the CLI)
 - **Python 3.9+** (for the Python SDK and integrations)
 - **Node.js 18+** (for the TypeScript SDK)
 

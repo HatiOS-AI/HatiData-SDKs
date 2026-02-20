@@ -41,6 +41,25 @@ hati query "SELECT NVL(email, 'unknown') AS email, IFF(id > 1, 'new', 'old') AS 
 
 NVL, IFF, DATEDIFF, FLATTEN, QUALIFY, LISTAGG — write Snowflake-compatible SQL, run it locally on DuckDB.
 
+## Sign Up and Authenticate
+
+Cloud features (push, pull, sync) require a free HatiData account. Sign up directly from the CLI:
+
+```bash
+# Interactive signup — creates account + saves API key
+hati auth signup
+
+# Or log in with an existing account
+hati auth login
+
+# Check auth status
+hati auth status
+```
+
+You can also sign up during `hati init` — the interactive wizard offers signup, login, or local-only mode.
+
+Get a free account at [hatidata.com/signup](https://hatidata.com/signup).
+
 ## For AI Agents
 
 ### Python
@@ -124,7 +143,7 @@ Get a free cloud key: [hatidata.com/signup](https://hatidata.com/signup). Full r
 
 | Package | Install | Description |
 |---------|---------|-------------|
-| [`hatidata-cli`](cli/) | `cargo install hatidata-cli` | CLI (`hati` binary): local warehouse + push to cloud |
+| [`hatidata-cli`](cli/) | `cargo install hatidata-cli` | CLI (`hati` binary): local warehouse, auth, push/pull with tier enforcement |
 | [`hatidata-agent`](sdk/python/) | `pip install hatidata-agent` | Python SDK with MCP server |
 | [`@hatidata/sdk`](sdk/typescript/) | `npm install @hatidata/sdk` | TypeScript / Node.js SDK |
 | [`dbt-hatidata`](integrations/dbt/) | `pip install dbt-hatidata` | dbt adapter |
@@ -132,7 +151,7 @@ Get a free cloud key: [hatidata.com/signup](https://hatidata.com/signup). Full r
 | [`crewai-hatidata`](integrations/crewai/) | `pip install crewai-hatidata` | CrewAI integration |
 | [MCP configs](integrations/mcp/) | See README | Claude Desktop, Claude Code, Cursor |
 
-## Three-Tier Model
+## Tier Model
 
 ```
 Local (Free)              Cloud ($29/mo)            Enterprise (Custom)
@@ -143,11 +162,25 @@ machine                   warehouse                 via PrivateLink
                           hati push --target vpc -->
 ```
 
-**Local** — Zero cloud dependency. Data stays in `.hati/local.duckdb`. Free forever.
+All tiers require a free HatiData account for cloud features. [Sign up here](https://hatidata.com/signup).
+
+| | Free | Cloud | Growth | Enterprise |
+|---|---|---|---|---|
+| **Price** | $0 | $29/mo | Custom | Custom |
+| **Tables per push** | 5 | 50 | 500 | Unlimited |
+| **Rows per table** | 10,000 | 1,000,000 | 100,000,000 | Unlimited |
+| **Push size per table** | 10 MB | 100 MB | 1 GB | Unlimited |
+| **Pull data** | -- | Yes | Yes | Yes |
+| **VPC push** | -- | -- | Yes | Yes |
+| **Local queries** | Unlimited | Unlimited | Unlimited | Unlimited |
+
+**Free** — Local DuckDB with cloud push for up to 5 tables. Data stays in `.hati/local.duckdb`. Free forever.
 
 **Cloud** — `hati push --target cloud` syncs your local warehouse to a managed endpoint. $29/month.
 
-**Enterprise** — `hati push --target vpc` deploys into your AWS VPC via PrivateLink. Custom pricing.
+**Growth** — Higher limits plus `hati push --target vpc` for VPC deployment. Custom pricing.
+
+**Enterprise** — Unlimited everything, VPC via PrivateLink, SSO, RBAC, CMEK. Custom pricing.
 
 ## Examples
 
@@ -155,7 +188,7 @@ See the [`examples/`](examples/) directory for runnable scripts in Python, TypeS
 
 ## Documentation
 
-Full documentation at [docs.hatiosai.com/hatidata](https://docs.hatiosai.com/hatidata).
+Full documentation at [docs.hatidata.com](https://docs.hatidata.com).
 
 ## Contributing
 
@@ -165,4 +198,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, code style, and PR
 
 Apache-2.0. See [LICENSE](LICENSE).
 
-Copyright 2024 Marviy Pte Ltd.
+Copyright 2024-2026 Marviy Pte Ltd.

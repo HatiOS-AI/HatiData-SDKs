@@ -128,7 +128,7 @@ HATIDATA_HOST=localhost RUN_FUNCTIONAL=true bash ci/run_dbt_tests.sh
 
 ## Resources
 
-- [HatiData Documentation](https://docs.hatiosai.com/hatidata)
+- [HatiData Documentation](https://docs.hatidata.com)
 - [dbt Documentation](https://docs.getdbt.com)
 - [dbt Community Slack](https://community.getdbt.com)
 
