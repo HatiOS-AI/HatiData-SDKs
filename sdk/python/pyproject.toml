@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hatidata-agent"
-version = "0.2.1"
+version = "0.3.0"
 description = "HatiData Agent SDK — RAM for Agents"
 readme = "README.md"
 license = {text = "Apache-2.0"}
@@ -26,6 +26,7 @@ classifiers = [
 ]
 dependencies = [
     "psycopg2-binary>=2.9",
+    "requests>=2.31",
 ]
 
 [project.optional-dependencies]
