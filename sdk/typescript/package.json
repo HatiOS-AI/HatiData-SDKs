@@ -1,7 +1,7 @@
 {
   "name": "@hatidata/sdk",
-  "version": "0.1.1",
-  "description": "HatiData TypeScript SDK — RAM for Agents",
+  "version": "0.2.0",
+  "description": "HatiData TypeScript SDK — agent memory, semantic triggers, branching, chain-of-thought, and sub-10ms SQL for AI agents",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -20,7 +20,7 @@
     "lint": "tsc --noEmit",
     "prepublishOnly": "npm run build"
   },
-  "keywords": ["hatidata", "data-warehouse", "duckdb", "ai-agents", "mcp", "langchain"],
+  "keywords": ["hatidata", "data-warehouse", "duckdb", "ai-agents", "mcp", "langchain", "agent-memory", "chain-of-thought"],
   "author": "Marviy Pte Ltd",
   "license": "Apache-2.0",
   "repository": {
@@ -28,7 +28,10 @@
     "url": "https://github.com/HatiOS-AI/HatiData-SDKs",
     "directory": "sdk/typescript"
   },
-  "homepage": "https://hatidata.com",
+  "homepage": "https://docs.hatidata.com/sdks/typescript",
+  "bugs": {
+    "url": "https://github.com/HatiOS-AI/HatiData-SDKs/issues"
+  },
   "devDependencies": {
     "tsup": "^8.0.0",
     "typescript": "^5.3.0",

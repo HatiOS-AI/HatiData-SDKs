@@ -21,5 +21,5 @@ from hatidata_agent.client import HatiDataAgent
 from hatidata_agent.control_plane import ControlPlaneClient
 from hatidata_agent.local_engine import LocalDuckDBEngine
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 __all__ = ["HatiDataAgent", "ControlPlaneClient", "LocalDuckDBEngine"]

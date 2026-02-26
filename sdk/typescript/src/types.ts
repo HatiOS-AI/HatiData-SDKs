@@ -127,3 +127,171 @@ export type ConnectionState =
   | "connecting"
   | "connected"
   | "error";
+
+// ── Control Plane Types ──────────────────────────────────────────────
+
+/**
+ * Configuration for connecting to the HatiData Control Plane.
+ */
+export interface ControlPlaneConfig {
+  /** Control plane URL (e.g., "https://api.hatidata.com"). */
+  baseUrl?: string;
+  /** User email for JWT login. */
+  email?: string;
+  /** User password for JWT login. */
+  password?: string;
+  /** API key (alternative to email/password). */
+  apiKey?: string;
+  /** Organization ID. Auto-detected from login if not provided. */
+  orgId?: string;
+  /** Request timeout in milliseconds. Defaults to 15000. */
+  timeout?: number;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: { id: string; email: string; role: string; [key: string]: unknown };
+  org: { id: string; name: string; tier: string; [key: string]: unknown };
+}
+
+export interface AgentMemory {
+  id: string;
+  org_id: string;
+  agent_id: string;
+  content: string;
+  memory_type: string;
+  created_at: string;
+  access_count?: number;
+  has_embedding?: boolean;
+  embedding_model?: string;
+  embedding_dimensions?: number;
+  embedding_status?: string;
+  branch_id?: string;
+  [key: string]: unknown;
+}
+
+export interface EmbeddingStats {
+  total_memories: number;
+  embedded_count: number;
+  pending_count: number;
+  embedding_model: string;
+  [key: string]: unknown;
+}
+
+export interface SemanticTrigger {
+  id: string;
+  name: string;
+  concept: string;
+  threshold: number;
+  actions: string[];
+  cooldown_secs: number;
+  fire_count?: number;
+  created_at: string;
+  [key: string]: unknown;
+}
+
+export interface TriggerTestResult {
+  would_fire: boolean;
+  similarity: number;
+  trigger_name?: string;
+  [key: string]: unknown;
+}
+
+export interface Branch {
+  id: string;
+  agent_id: string;
+  tables: string[];
+  description?: string;
+  status: string;
+  created_at: string;
+  [key: string]: unknown;
+}
+
+export interface BranchMergeResult {
+  status: string;
+  conflicts?: number;
+  [key: string]: unknown;
+}
+
+export interface BranchDiff {
+  tables: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface BranchConflicts {
+  has_conflicts: boolean;
+  conflicts: unknown[];
+  [key: string]: unknown;
+}
+
+export interface BranchCost {
+  storage_bytes: number;
+  compute_credits: number;
+  [key: string]: unknown;
+}
+
+export interface BranchAnalytics {
+  total_branches: number;
+  active_branches: number;
+  [key: string]: unknown;
+}
+
+export interface CotTrace {
+  trace_id: string;
+  session_id: string;
+  agent_id: string;
+  org_id: string;
+  step_index: number;
+  trace_type: string;
+  content: Record<string, unknown>;
+  content_hash: string;
+  timestamp: string;
+}
+
+export interface CotIngestResult {
+  ingested: number;
+  session_id: string;
+  [key: string]: unknown;
+}
+
+export interface CotSession {
+  session_id: string;
+  agent_id: string;
+  total_steps: number;
+  started_at: string;
+  ended_at?: string;
+  [key: string]: unknown;
+}
+
+export interface CotReplay {
+  session_id: string;
+  total_steps: number;
+  chain_valid: boolean;
+  steps: Array<{
+    step_index: number;
+    trace_type: string;
+    content: Record<string, unknown>;
+    content_hash: string;
+    [key: string]: unknown;
+  }>;
+  [key: string]: unknown;
+}
+
+export interface CotVerification {
+  chain_valid: boolean;
+  total_traces: number;
+  invalid_hashes: string[];
+  [key: string]: unknown;
+}
+
+export interface JitGrant {
+  id: string;
+  requester_id: string;
+  org_id: string;
+  target_role: string;
+  reason: string;
+  status: string;
+  created_at: string;
+  expires_at?: string;
+  [key: string]: unknown;
+}

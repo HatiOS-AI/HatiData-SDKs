@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hatidata-agent"
-version = "0.3.0"
-description = "HatiData Agent SDK — RAM for Agents"
+version = "0.3.1"
+description = "HatiData Python SDK — agent memory, semantic triggers, branching, chain-of-thought, and sub-10ms SQL for AI agents"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.9"

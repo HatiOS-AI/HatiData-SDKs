@@ -1,30 +1,25 @@
-# HatiData Agent SDK
+# HatiData Python SDK
 
 [![PyPI version](https://img.shields.io/pypi/v/hatidata-agent.svg)](https://pypi.org/project/hatidata-agent/)
 [![Python versions](https://img.shields.io/pypi/pyversions/hatidata-agent.svg)](https://pypi.org/project/hatidata-agent/)
 [![License](https://img.shields.io/pypi/l/hatidata-agent.svg)](https://github.com/HatiOS-AI/HatiData-SDKs/blob/main/LICENSE)
 
-**RAM for Agents** — Python SDK for AI agents to query HatiData's in-VPC data warehouse with sub-10ms latency via Postgres wire protocol.
+**Every Agent Deserves a Brain.** Python SDK for HatiData -- the agent-native data platform. Sub-10ms SQL queries via Postgres wire protocol, plus a full Control Plane client for agent memory, semantic triggers, state branching, chain-of-thought audit trails, and JIT access.
 
 ## Installation
 
 ```bash
 pip install hatidata-agent
-
-# With async support
-pip install hatidata-agent[async]
-
-# With LangChain support
-pip install hatidata-agent[langchain]
-
-# With MCP server
-pip install hatidata-agent[mcp]
-
-# Everything
-pip install hatidata-agent[all]
 ```
 
-## Quick Start
+## Two Clients, One SDK
+
+| Client | Purpose | Protocol |
+|--------|---------|----------|
+| `HatiDataAgent` | SQL queries via proxy (data plane) | Postgres wire protocol |
+| `ControlPlaneClient` | Agent-native features (memory, triggers, branches, CoT) | REST API |
+
+## Quick Start -- Data Plane
 
 ```python
 from hatidata_agent import HatiDataAgent
@@ -36,78 +31,184 @@ agent = HatiDataAgent(
     framework="langchain",
 )
 
-# Simple query
 rows = agent.query("SELECT * FROM customers WHERE status = 'active' LIMIT 10")
-print(rows)  # [{"id": 1, "name": "Acme Corp", ...}, ...]
+```
+
+## Quick Start -- Control Plane
+
+```python
+from hatidata_agent import ControlPlaneClient
+
+cp = ControlPlaneClient(
+    base_url="https://api.hatidata.com",
+    email="you@company.com",
+    password="...",
+)
+cp.login()
+
+# Agent memory
+cp.create_memory(agent_id="my-agent", content="User prefers dark mode")
+results = cp.search_memory(query="user preferences", top_k=5)
+
+# Semantic triggers
+trigger = cp.create_trigger(name="PII detected", concept="personal data exposure")
+result = cp.test_trigger(trigger["id"], "User SSN is 123-45-6789")
+
+# State branching
+branch = cp.create_branch(agent_id="analyst", tables=["portfolio"])
+cp.merge_branch(branch["id"], strategy="branch_wins")
+
+# Chain-of-thought audit trail
+session_id, traces = cp.build_cot_session(
+    agent_id="my-agent",
+    org_id=cp.org_id,
+    steps=[
+        {"type": "Thought", "content": {"text": "Analyzing customer data"}},
+        {"type": "ToolCall", "content": {"tool": "sql_query", "query": "SELECT ..."}},
+        {"type": "LlmResponse", "content": {"answer": "Found 42 enterprise accounts"}},
+    ],
+)
+cp.ingest_cot(traces)
+verification = cp.verify_cot(session_id)  # SHA-256 hash chain verification
 ```
 
 ## Features
 
-- **Sub-10ms query latency** -- In-VPC execution, no data leaves your network
-- **Postgres wire protocol** -- Works with any Postgres client library
-- **Reasoning chain tracking** -- Multi-step audit trails for agent workflows
-- **RAG context retrieval** -- Full-text and vector similarity search
-- **LangChain integration** -- Drop-in `SQLDatabase` replacement for LangChain agents
-- **MCP server** -- Expose HatiData as tools for Claude and other MCP-compatible agents
-- **Agent identification** -- Per-agent billing, priority scheduling, and audit via Postgres startup parameters
-- **Snowflake SQL compatible** -- Bring existing queries without rewrites
+### Data Plane (`HatiDataAgent`)
 
-## Hybrid SQL
+- **Sub-10ms query latency** -- in-VPC execution, no data leaves your network
+- **Postgres wire protocol** -- works with any Postgres client library
+- **Reasoning chain tracking** -- multi-step audit trails for agent workflows
+- **RAG context retrieval** -- full-text and vector similarity search
+- **Snowflake SQL compatible** -- bring existing queries without rewrites
+- **Agent identification** -- per-agent billing, scheduling, and audit via startup parameters
 
-Combine structured queries with semantic search. Standard SQL runs locally with zero cloud dependency. Hybrid SQL (JOIN_VECTOR, semantic_match, etc.) is transparently transpiled via the HatiData cloud API.
+### Control Plane (`ControlPlaneClient`)
+
+- **Agent memory** -- store, search, and manage long-term agent memories with vector embeddings
+- **Semantic triggers** -- register concept-based triggers that fire on semantic similarity
+- **State branching** -- create isolated data branches for experimentation, merge winners, discard losers
+- **Chain-of-thought** -- SHA-256 hash-chained audit trails for tamper-evident reasoning logs
+- **JIT access** -- request time-bounded privilege escalation for agents and humans
+- **JWT and API key auth** -- auto-login on first request, org-scoped endpoints
+
+## Control Plane API Reference
+
+### Authentication
 
 ```python
-from hatidata_agent import HatiDataAgent
+cp = ControlPlaneClient(base_url="...", email="...", password="...")
+cp.login()  # JWT auth -- auto-called on first request
 
-agent = HatiDataAgent(
-    host="localhost", port=5439,
-    cloud_key="hd_live_..."  # free at hatidata.com/signup
-)
-
-# Semantic search
-rows = agent.query("""
-    SELECT ticket_id, subject
-    FROM support_tickets
-    WHERE semantic_match(embedding, 'billing dispute refund')
-    ORDER BY semantic_rank(embedding, 'billing dispute refund') DESC
-    LIMIT 10
-""")
-
-# Hybrid join
-rows = agent.query("""
-    SELECT t.ticket_id, k.article_title, k.solution
-    FROM support_tickets t
-    JOIN_VECTOR knowledge_base k ON semantic_match(k.embedding, t.subject)
-    WHERE t.status = 'open'
-""")
+# Or use API key auth (no login needed)
+cp = ControlPlaneClient(base_url="...", api_key="hd_live_...", org_id="org-...")
 ```
 
-Get a free cloud key (50 queries/day) at [hatidata.com/signup](https://hatidata.com/signup). You can also set the `HATIDATA_CLOUD_KEY` env var or run `hati login`.
+### Agent Memory
 
-## Reasoning Chain Tracking
+```python
+# Create
+mem = cp.create_memory(agent_id="agent-1", content="...", memory_type="observation")
 
-Track multi-step reasoning chains for audit and debugging:
+# List with filters
+memories = cp.list_memories(agent_id="agent-1", memory_type="observation", limit=20)
+
+# Semantic search
+results = cp.search_memory(query="user preferences", agent_id="agent-1", top_k=5)
+
+# Delete
+cp.delete_memory(mem["id"])
+
+# Embedding stats
+stats = cp.embedding_stats()
+```
+
+### Semantic Triggers
+
+```python
+# Register
+trigger = cp.create_trigger(
+    name="PII Detected",
+    concept="personal data exposure",
+    threshold=0.85,
+    actions=["webhook"],
+    cooldown_secs=60,
+)
+
+# List all
+triggers = cp.list_triggers()
+
+# Test against text
+result = cp.test_trigger(trigger["id"], "Customer SSN is 123-45-6789")
+print(result["would_fire"], result["similarity"])
+
+# Delete
+cp.delete_trigger(trigger["id"])
+```
+
+### State Branching
+
+```python
+# Create isolated branches
+branch = cp.create_branch(agent_id="analyst", tables=["portfolio"], description="Conservative rebalance")
+
+# Inspect
+branches = cp.list_branches()
+diff = cp.branch_diff(branch["id"])
+conflicts = cp.branch_conflicts(branch["id"])
+cost = cp.branch_cost(branch["id"])
+analytics = cp.branch_analytics()
+
+# Merge or discard
+cp.merge_branch(branch["id"], strategy="branch_wins")
+cp.discard_branch(other_branch_id)
+```
+
+### Chain-of-Thought
+
+```python
+# Build hash-chained session
+session_id, traces = cp.build_cot_session(
+    agent_id="my-agent",
+    org_id=cp.org_id,
+    steps=[
+        {"type": "Thought", "content": {"text": "..."}},
+        {"type": "ToolCall", "content": {"tool": "search", "query": "..."}},
+        {"type": "ToolResult", "content": {"count": 42}},
+        {"type": "LlmResponse", "content": {"answer": "..."}},
+    ],
+)
+
+# Ingest
+result = cp.ingest_cot(traces)
+
+# Verify hash chain integrity
+verification = cp.verify_cot(session_id)
+assert verification["chain_valid"] is True
+
+# Replay for audit
+replay = cp.replay_cot(session_id)
+
+# List sessions
+sessions = cp.list_cot_sessions()
+```
+
+### JIT Access
+
+```python
+grant = cp.request_jit(target_role="admin", reason="deploy fix", duration_hours=2)
+grants = cp.list_jit_grants()
+```
+
+## Reasoning Chain Tracking (Data Plane)
+
+Track multi-step reasoning chains via the proxy:
 
 ```python
 with agent.reasoning_chain("req-001") as chain:
-    # Step 0: Discover tables
     tables = chain.query("SELECT table_name FROM information_schema.tables")
-
-    # Step 1: Get relevant data
-    customers = chain.query("SELECT * FROM customers WHERE tier = 'enterprise'", step=1)
-
-    # Step 2: Aggregate
-    revenue = chain.query("SELECT SUM(revenue) FROM orders WHERE customer_id IN (...)", step=2)
-```
-
-## RAG Context Retrieval
-
-```python
-# Full-text search
-context = agent.get_context("customers", "enterprise accounts in US", top_k=5)
-
-# Vector similarity search
-context = agent.get_rag_context("docs", "embedding", query_vector, top_k=10)
+    data = chain.query("SELECT * FROM customers WHERE tier = 'enterprise'", step=1)
+    revenue = chain.query("SELECT SUM(revenue) FROM orders", step=2)
 ```
 
 ## LangChain Integration
@@ -116,37 +217,16 @@ context = agent.get_rag_context("docs", "embedding", query_vector, top_k=10)
 from hatidata_agent.langchain import HatiDataSQLDatabase
 from langchain.agents import create_sql_agent
 
-db = HatiDataSQLDatabase(
-    host="proxy.internal",
-    port=5439,
-    agent_id="sql-agent-1",
-)
-
+db = HatiDataSQLDatabase(host="proxy.internal", port=5439, agent_id="sql-agent-1")
 agent = create_sql_agent(llm=llm, db=db, verbose=True)
 result = agent.run("How many enterprise customers do we have?")
 ```
 
 ## MCP Server
 
-Run as an MCP server for Claude and other MCP-compatible agents:
-
 ```bash
-# Start the MCP server
 hatidata-mcp-server --host proxy.internal --port 5439
-
-# Or add to Claude Code's MCP config:
-# ~/.claude/mcp.json
-{
-  "mcpServers": {
-    "hatidata": {
-      "command": "hatidata-mcp-server",
-      "args": ["--host", "proxy.internal", "--port", "5439"]
-    }
-  }
-}
 ```
-
-### MCP Tools
 
 | Tool | Description |
 |------|-------------|
@@ -155,23 +235,15 @@ hatidata-mcp-server --host proxy.internal --port 5439
 | `describe_table` | Get table schema |
 | `get_context` | RAG context retrieval via full-text search |
 
-## Agent Identification
-
-The SDK automatically identifies agents via Postgres startup parameters:
-
-| Parameter | Purpose |
-|-----------|---------|
-| `hatidata_agent_id` | Unique agent identifier |
-| `hatidata_framework` | AI framework (langchain, crewai, autogen, etc.) |
-| `hatidata_priority` | Scheduling priority (low, normal, high, critical) |
-| `hatidata_request_id` | Request/reasoning chain ID |
-| `hatidata_reasoning_step` | Step number within a chain |
-
-These enable per-agent billing, priority scheduling, audit trails, and the Agent Tax Report showing savings vs legacy cloud warehouses.
-
 ## Documentation
 
-Full documentation is available at [docs.hatidata.com](https://docs.hatidata.com).
+- [Getting Started](https://docs.hatidata.com/getting-started)
+- [Python SDK Reference](https://docs.hatidata.com/sdks/python)
+- [Control Plane API](https://docs.hatidata.com/api-reference)
+- [Agent Memory](https://docs.hatidata.com/features/agent-memory)
+- [Semantic Triggers](https://docs.hatidata.com/features/semantic-triggers)
+- [State Branching](https://docs.hatidata.com/features/branching)
+- [Chain-of-Thought](https://docs.hatidata.com/features/chain-of-thought)
 
 ## License
 

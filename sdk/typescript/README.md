@@ -1,6 +1,9 @@
 # @hatidata/sdk
 
-The official TypeScript SDK for [HatiData](https://hatidata.com) -- RAM for Agents. Connect to your HatiData instance from Node.js or browser environments with full type safety.
+[![npm version](https://img.shields.io/npm/v/@hatidata/sdk.svg)](https://www.npmjs.com/package/@hatidata/sdk)
+[![License](https://img.shields.io/npm/l/@hatidata/sdk.svg)](https://github.com/HatiOS-AI/HatiData-SDKs/blob/main/LICENSE)
+
+**Every Agent Deserves a Brain.** TypeScript SDK for [HatiData](https://hatidata.com) -- the agent-native data platform. Sub-10ms SQL queries, plus a full Control Plane client for agent memory, semantic triggers, state branching, chain-of-thought audit trails, and JIT access.
 
 ## Installation
 
@@ -8,15 +11,15 @@ The official TypeScript SDK for [HatiData](https://hatidata.com) -- RAM for Agen
 npm install @hatidata/sdk
 ```
 
-For local mode (in-process DuckDB, no server required):
+## Three Clients, One SDK
 
-```bash
-npm install @hatidata/sdk @duckdb/duckdb-wasm
-```
+| Client | Purpose | Protocol |
+|--------|---------|----------|
+| `HatiDataClient` | SQL queries via control plane | REST API |
+| `ControlPlaneClient` | Agent-native features (memory, triggers, branches, CoT) | REST API |
+| `LocalEngine` | In-process DuckDB-WASM queries | Local |
 
-## Quick Start
-
-### Connect and Query
+## Quick Start -- SQL Queries
 
 ```typescript
 import { HatiDataClient } from "@hatidata/sdk";
@@ -28,200 +31,212 @@ const client = new HatiDataClient({
 });
 
 await client.connect();
-
-// Execute SQL queries
 const result = await client.query("SELECT * FROM sales LIMIT 10");
-console.log(result.columns); // [{ name: "id", type: "INTEGER" }, ...]
-console.log(result.rows);    // [{ id: 1, amount: 99.99 }, ...]
-console.log(result.rowCount); // 10
-
-// List tables
-const tables = await client.listTables();
-console.log(tables); // [{ name: "sales", schema: "main", columnCount: 5, rowCount: 1000 }]
-
+console.log(result.rows);
 await client.close();
 ```
 
-### Hybrid SQL
-
-Combine structured queries with semantic search. Standard SQL runs locally — hybrid SQL is transparently transpiled via the HatiData cloud API (50 free queries/day).
+## Quick Start -- Control Plane
 
 ```typescript
-import { HatiDataClient } from "@hatidata/sdk";
+import { ControlPlaneClient } from "@hatidata/sdk";
 
-const client = new HatiDataClient({
-  host: "localhost",
-  port: 8080,
-  apiKey: "hd_your_api_key",
-  cloudKey: "hd_live_...", // free at hatidata.com/signup
+const cp = new ControlPlaneClient({
+  baseUrl: "https://api.hatidata.com",
+  email: "you@company.com",
+  password: "...",
 });
+await cp.login();
 
-await client.connect();
+// Agent memory
+await cp.createMemory({ agentId: "my-agent", content: "User prefers dark mode" });
+const results = await cp.searchMemory({ query: "user preferences", topK: 5 });
 
-// Semantic search
-const tickets = await client.query(`
-  SELECT ticket_id, subject
-  FROM support_tickets
-  WHERE semantic_match(embedding, 'billing dispute')
-  ORDER BY semantic_rank(embedding, 'billing dispute') DESC
-  LIMIT 10
-`);
+// Semantic triggers
+const trigger = await cp.createTrigger({ name: "PII detected", concept: "personal data exposure" });
+const test = await cp.testTrigger(trigger.id, "User SSN is 123-45-6789");
 
-// Hybrid join
-const enriched = await client.query(`
-  SELECT t.ticket_id, k.article_title, k.solution
-  FROM support_tickets t
-  JOIN_VECTOR knowledge_base k ON semantic_match(k.embedding, t.subject)
-  WHERE t.status = 'open'
-`);
+// State branching
+const branch = await cp.createBranch({ agentId: "analyst", tables: ["portfolio"] });
+await cp.mergeBranch(branch.id, "branch_wins");
+
+// Chain-of-thought audit trail
+const [sessionId, traces] = ControlPlaneClient.buildCotSession({
+  agentId: "my-agent",
+  orgId: cp.orgId,
+  steps: [
+    { type: "Thought", content: { text: "Analyzing customer data" } },
+    { type: "ToolCall", content: { tool: "sql_query", query: "SELECT ..." } },
+    { type: "LlmResponse", content: { answer: "Found 42 enterprise accounts" } },
+  ],
+});
+await cp.ingestCot(traces);
+const verification = await cp.verifyCot(sessionId); // SHA-256 hash chain
 ```
 
-You can also set the `HATIDATA_CLOUD_KEY` env var instead of passing `cloudKey`.
+## Features
 
-### Local Mode (No Server)
+### Data Plane (`HatiDataClient`)
 
-Run queries entirely in-process using DuckDB-WASM -- perfect for development, testing, and edge workloads.
+- **Sub-10ms query latency** -- in-VPC execution, no data leaves your network
+- **Push & pull sync** -- sync data between local and remote instances
+- **Full type safety** -- all responses are fully typed
+- **Snowflake SQL compatible** -- bring existing queries without rewrites
+
+### Control Plane (`ControlPlaneClient`)
+
+- **Agent memory** -- store, search, and manage long-term agent memories with vector embeddings
+- **Semantic triggers** -- register concept-based triggers that fire on semantic similarity
+- **State branching** -- create isolated data branches for experimentation, merge winners, discard losers
+- **Chain-of-thought** -- SHA-256 hash-chained audit trails for tamper-evident reasoning logs
+- **JIT access** -- request time-bounded privilege escalation for agents and humans
+- **JWT and API key auth** -- auto-login on first request, org-scoped endpoints
+
+### Local Mode (`LocalEngine`)
+
+- **Zero server dependency** -- run queries entirely in-process using DuckDB-WASM
+- **Development & testing** -- perfect for unit tests and local development
+- **Edge workloads** -- deploy with your agent, no network required
+
+## Control Plane API Reference
+
+### Authentication
+
+```typescript
+// JWT auth (auto-login on first request)
+const cp = new ControlPlaneClient({ baseUrl: "...", email: "...", password: "..." });
+await cp.login();
+
+// API key auth (no login needed)
+const cp = new ControlPlaneClient({ baseUrl: "...", apiKey: "hd_live_...", orgId: "org-..." });
+```
+
+### Agent Memory
+
+```typescript
+// Create
+const mem = await cp.createMemory({ agentId: "agent-1", content: "...", memoryType: "observation" });
+
+// List with filters
+const memories = await cp.listMemories({ agentId: "agent-1", memoryType: "observation", limit: 20 });
+
+// Semantic search
+const results = await cp.searchMemory({ query: "user preferences", agentId: "agent-1", topK: 5 });
+
+// Delete
+await cp.deleteMemory(mem.id);
+
+// Embedding stats
+const stats = await cp.embeddingStats();
+```
+
+### Semantic Triggers
+
+```typescript
+const trigger = await cp.createTrigger({
+  name: "PII Detected",
+  concept: "personal data exposure",
+  threshold: 0.85,
+  actions: ["webhook"],
+  cooldownSecs: 60,
+});
+
+const triggers = await cp.listTriggers();
+const result = await cp.testTrigger(trigger.id, "Customer SSN is 123-45-6789");
+await cp.deleteTrigger(trigger.id);
+```
+
+### State Branching
+
+```typescript
+const branch = await cp.createBranch({
+  agentId: "analyst",
+  tables: ["portfolio"],
+  description: "Conservative rebalance",
+});
+
+const branches = await cp.listBranches();
+const diff = await cp.branchDiff(branch.id);
+const conflicts = await cp.branchConflicts(branch.id);
+const cost = await cp.branchCost(branch.id);
+const analytics = await cp.branchAnalytics();
+
+await cp.mergeBranch(branch.id, "branch_wins");
+await cp.discardBranch(otherBranchId);
+```
+
+### Chain-of-Thought
+
+```typescript
+// Build hash-chained session
+const [sessionId, traces] = ControlPlaneClient.buildCotSession({
+  agentId: "my-agent",
+  orgId: "org-...",
+  steps: [
+    { type: "Thought", content: { text: "..." } },
+    { type: "ToolCall", content: { tool: "search", query: "..." } },
+    { type: "ToolResult", content: { count: 42 } },
+    { type: "LlmResponse", content: { answer: "..." } },
+  ],
+});
+
+await cp.ingestCot(traces);
+const verification = await cp.verifyCot(sessionId);
+const replay = await cp.replayCot(sessionId);
+const sessions = await cp.listCotSessions();
+```
+
+### JIT Access
+
+```typescript
+const grant = await cp.requestJit({ targetRole: "admin", reason: "deploy fix", durationHours: 2 });
+const grants = await cp.listJitGrants();
+```
+
+## Local Mode
 
 ```typescript
 import { LocalEngine } from "@hatidata/sdk";
 
-const engine = new LocalEngine(); // or new LocalEngine(":memory:")
+const engine = new LocalEngine(":memory:");
 await engine.init();
 
 await engine.query("CREATE TABLE events (id INT, name VARCHAR)");
 await engine.query("INSERT INTO events VALUES (1, 'click'), (2, 'view')");
-
 const result = await engine.query("SELECT * FROM events");
-console.log(result.rows); // [{ id: 1, name: "click" }, { id: 2, name: "view" }]
 
 await engine.close();
 ```
 
-### Push & Pull Sync
+Requires `@duckdb/duckdb-wasm` as a peer dependency: `npm install @duckdb/duckdb-wasm`
 
-Sync data between local and remote HatiData instances.
-
-```typescript
-import { HatiDataClient } from "@hatidata/sdk";
-
-const client = new HatiDataClient({
-  host: "localhost",
-  port: 8080,
-  apiKey: "hd_local_key",
-});
-
-await client.connect();
-
-// Push local tables to cloud
-const pushResult = await client.push({
-  target: "cloud",
-  tables: ["events", "users"],
-  apiKey: "hd_cloud_key",
-});
-console.log(`Pushed ${pushResult.tablesSync} tables`);
-
-// Pull remote tables locally
-const pullResult = await client.pull({
-  tables: ["analytics_summary"],
-});
-console.log(`Pulled ${pullResult.tablesPulled} tables`);
-
-await client.close();
-```
-
-### Error Handling
+## Error Handling
 
 ```typescript
-import {
-  HatiDataClient,
-  ConnectionError,
-  QueryError,
-  AuthenticationError,
-} from "@hatidata/sdk";
-
-const client = new HatiDataClient({ apiKey: "hd_my_key" });
+import { ControlPlaneClient, AuthenticationError, ConnectionError, HatiDataError } from "@hatidata/sdk";
 
 try {
-  await client.connect();
-  const result = await client.query("SELECT * FROM nonexistent_table");
+  await cp.createMemory({ agentId: "agent-1", content: "test" });
 } catch (error) {
   if (error instanceof AuthenticationError) {
     console.error("Bad credentials:", error.message);
-  } else if (error instanceof QueryError) {
-    console.error("Query failed:", error.message, "SQLSTATE:", error.sqlState);
   } else if (error instanceof ConnectionError) {
     console.error("Connection issue:", error.message);
+  } else if (error instanceof HatiDataError) {
+    console.error("API error:", error.message, error.code);
   }
-} finally {
-  await client.close();
 }
 ```
-
-## API Reference
-
-### `HatiDataClient`
-
-| Method | Description |
-|--------|-------------|
-| `constructor(config: HatiDataConfig)` | Create a new client instance |
-| `connect(): Promise<void>` | Connect to the HatiData control plane |
-| `query(sql, params?): Promise<QueryResult>` | Execute a SQL query |
-| `listTables(): Promise<TableInfo[]>` | List all accessible tables |
-| `push(options): Promise<{ tablesSync }>` | Push local data to cloud/VPC |
-| `pull(options): Promise<{ tablesPulled }>` | Pull remote data locally |
-| `close(): Promise<void>` | Close the connection |
-| `state: ConnectionState` | Current connection state |
-
-### `LocalEngine`
-
-| Method | Description |
-|--------|-------------|
-| `constructor(dbPath?: string)` | Create engine (default: `.hati/local.duckdb`) |
-| `init(): Promise<void>` | Initialize DuckDB-WASM |
-| `query(sql): Promise<QueryResult>` | Execute a SQL query locally |
-| `listTables(): Promise<TableInfo[]>` | List local tables |
-| `close(): Promise<void>` | Close and release resources |
-
-### Configuration
-
-```typescript
-interface HatiDataConfig {
-  host?: string;          // Default: "localhost"
-  port?: number;          // Default: 8080
-  database?: string;      // Default: "default"
-  user?: string;
-  password?: string;
-  apiKey?: string;         // Takes precedence over user/password
-  ssl?: boolean;           // Default: false
-  timeout?: number;        // Default: 30000 (ms)
-  cloudKey?: string;       // For hybrid SQL (from hatidata.com/signup)
-  cloudEndpoint?: string;  // Default: "https://api.hatidata.com"
-}
-```
-
-### Error Types
-
-| Error | Code | Description |
-|-------|------|-------------|
-| `HatiDataError` | varies | Base error class |
-| `ConnectionError` | `CONNECTION_FAILED` | Connection issues |
-| `QueryError` | `QUERY_ERROR` | Query execution failures (includes `sqlState`) |
-| `AuthenticationError` | `AUTHENTICATION_FAILED` | Invalid credentials |
-| `SyncError` | `SYNC_FAILED` | Push/pull sync failures |
-| `HybridSQLError` | `HYBRID_SQL_ERROR` | Hybrid SQL used without cloud key |
-| `TranspileQuotaError` | `QUOTA_EXCEEDED` | Daily hybrid SQL quota exceeded |
-
-## Tiers
-
-| Tier | Connection | Use Case |
-|------|-----------|----------|
-| **Local** (free) | `LocalEngine` with DuckDB-WASM | Development, testing, edge |
-| **Cloud** ($29/mo) | `HatiDataClient` to managed instance | Teams, production |
-| **Enterprise** (VPC) | `HatiDataClient` to VPC-deployed instance | Regulated industries |
 
 ## Documentation
 
-Full documentation is available at [docs.hatidata.com](https://docs.hatidata.com).
+- [Getting Started](https://docs.hatidata.com/getting-started)
+- [TypeScript SDK Reference](https://docs.hatidata.com/sdks/typescript)
+- [Control Plane API](https://docs.hatidata.com/api-reference)
+- [Agent Memory](https://docs.hatidata.com/features/agent-memory)
+- [Semantic Triggers](https://docs.hatidata.com/features/semantic-triggers)
+- [State Branching](https://docs.hatidata.com/features/branching)
+- [Chain-of-Thought](https://docs.hatidata.com/features/chain-of-thought)
 
 ## License
 
