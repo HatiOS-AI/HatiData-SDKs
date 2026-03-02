@@ -51,6 +51,7 @@ class ControlPlaneClient:
         api_key: API key (alternative to email/password). Use ``ApiKey <key>`` format.
         org_id: Organization ID. Auto-detected from login if not provided.
         timeout: Request timeout in seconds.
+        include_meta: When True, preserve ``_meta`` response metadata in API responses.
     """
 
     def __init__(
@@ -61,6 +62,7 @@ class ControlPlaneClient:
         api_key: str = "",
         org_id: str = "",
         timeout: int = 15,
+        include_meta: bool = False,
     ):
         self.base_url = base_url.rstrip("/")
         self.email = email
@@ -68,6 +70,7 @@ class ControlPlaneClient:
         self.api_key = api_key
         self.org_id = org_id
         self.timeout = timeout
+        self.include_meta = include_meta
         self._token: Optional[str] = None
         self._user_context: Optional[dict[str, Any]] = None
         self._org_context: Optional[dict[str, Any]] = None
@@ -167,6 +170,25 @@ class ControlPlaneClient:
         )
         resp.raise_for_status()
         return resp.json()
+
+    def _request_with_meta(self, method: str, path: str, **kwargs: Any) -> dict[str, Any]:
+        """Make a request and return full JSON including _meta if present.
+
+        When ``include_meta`` is True, returns the raw response JSON
+        (preserving ``_meta`` wrapper). Otherwise returns just the data.
+        """
+        url = self._url(path)
+        resp = requests.request(
+            method, url, headers=self._headers(), timeout=self.timeout, **kwargs
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        if self.include_meta:
+            return data
+        # Strip _meta wrapper if present
+        if isinstance(data, dict) and "data" in data and "_meta" in data:
+            return data["data"]
+        return data
 
     # ── Health ─────────────────────────────────────────────────────────────
 
