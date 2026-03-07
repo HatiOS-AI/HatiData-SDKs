@@ -1,6 +1,6 @@
 {
   "name": "@hatidata/sdk",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "HatiData TypeScript SDK — agent memory, semantic triggers, branching, chain-of-thought, and sub-10ms SQL for AI agents",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

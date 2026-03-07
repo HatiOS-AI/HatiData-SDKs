@@ -61,6 +61,7 @@ class ControlPlaneClient:
         password: str = "",
         api_key: str = "",
         org_id: str = "",
+        env_id: str = "",
         timeout: int = 15,
         include_meta: bool = False,
     ):
@@ -69,6 +70,7 @@ class ControlPlaneClient:
         self.password = password
         self.api_key = api_key
         self.org_id = org_id
+        self.env_id = env_id
         self.timeout = timeout
         self.include_meta = include_meta
         self._token: Optional[str] = None
@@ -170,6 +172,58 @@ class ControlPlaneClient:
         )
         resp.raise_for_status()
         return resp.json()
+
+    def _abs_delete(self, path: str) -> Any:
+        """DELETE with absolute path (not org-scoped)."""
+        resp = requests.delete(
+            f"{self.base_url}{path}",
+            headers=self._headers(),
+            timeout=self.timeout,
+        )
+        resp.raise_for_status()
+        if resp.content:
+            return resp.json()
+        return {}
+
+    # ── Environment-scoped helpers ────────────────────────────────────────
+
+    def _env_url(self, path: str) -> str:
+        """Build environment-scoped URL."""
+        return f"{self.base_url}/v1/environments/{self.env_id}{path}"
+
+    def _env_get(self, path: str, params: Optional[dict] = None) -> Any:
+        """GET with environment-scoped URL."""
+        resp = requests.get(
+            self._env_url(path),
+            headers=self._headers(),
+            params=params,
+            timeout=self.timeout,
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+    def _env_post(self, path: str, json: Optional[dict] = None) -> Any:
+        """POST with environment-scoped URL."""
+        resp = requests.post(
+            self._env_url(path),
+            headers=self._headers(),
+            json=json or {},
+            timeout=self.timeout,
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+    def _env_delete(self, path: str) -> Any:
+        """DELETE with environment-scoped URL."""
+        resp = requests.delete(
+            self._env_url(path),
+            headers=self._headers(),
+            timeout=self.timeout,
+        )
+        resp.raise_for_status()
+        if resp.content:
+            return resp.json()
+        return {}
 
     def _request_with_meta(self, method: str, path: str, **kwargs: Any) -> dict[str, Any]:
         """Make a request and return full JSON including _meta if present.
@@ -366,6 +420,82 @@ class ControlPlaneClient:
     def list_jit_grants(self) -> list[dict[str, Any]]:
         """List all JIT access grants for the org."""
         return self._get("/jit")
+
+    # ── Agent Keys ─────────────────────────────────────────────────────────
+
+    def create_agent_key(
+        self,
+        agent_name: str,
+        framework: str = "custom",
+        plan: Optional[str] = None,
+        description: Optional[str] = None,
+        allowed_schemas: Optional[list[str]] = None,
+        allowed_tables: Optional[list[str]] = None,
+        expires_in_days: Optional[int] = None,
+    ) -> dict[str, Any]:
+        """Create an agent API key. Returns id, agent_name, framework, raw_key, etc.
+
+        The ``raw_key`` is shown **only once** — store it securely.
+        """
+        payload: dict[str, Any] = {
+            "agent_name": agent_name,
+            "framework": framework,
+        }
+        if plan is not None:
+            payload["plan"] = plan
+        if description is not None:
+            payload["description"] = description
+        if allowed_schemas is not None:
+            payload["allowed_schemas"] = allowed_schemas
+        if allowed_tables is not None:
+            payload["allowed_tables"] = allowed_tables
+        if expires_in_days is not None:
+            payload["expires_in_days"] = expires_in_days
+        return self._post("/agent-keys", payload)
+
+    def list_agent_keys(self) -> list[dict[str, Any]]:
+        """List all agent keys with enriched fields (status, key_prefix, last_used_at)."""
+        return self._get("/agent-keys")
+
+    def get_agent_key(self, key_id: str) -> dict[str, Any]:
+        """Get agent key details including effective limits."""
+        return self._get(f"/agent-keys/{key_id}")
+
+    def update_agent_key(
+        self,
+        key_id: str,
+        agent_name: Optional[str] = None,
+        description: Optional[str] = None,
+        allowed_schemas: Optional[list[str]] = None,
+        allowed_tables: Optional[list[str]] = None,
+    ) -> dict[str, Any]:
+        """Update agent key metadata."""
+        payload: dict[str, Any] = {}
+        if agent_name is not None:
+            payload["agent_name"] = agent_name
+        if description is not None:
+            payload["description"] = description
+        if allowed_schemas is not None:
+            payload["allowed_schemas"] = allowed_schemas
+        if allowed_tables is not None:
+            payload["allowed_tables"] = allowed_tables
+        return self._put(f"/agent-keys/{key_id}", payload)
+
+    def rotate_agent_key(self, key_id: str) -> dict[str, Any]:
+        """Rotate an agent key. Returns old_key_id, new_key, grace_period_hours."""
+        return self._post(f"/agent-keys/{key_id}/rotate")
+
+    def revoke_agent_key(self, key_id: str) -> dict[str, Any]:
+        """Revoke an agent key. Returns key_id and revoked status."""
+        return self._delete(f"/agent-keys/{key_id}")
+
+    def get_agent_key_usage(self, key_id: str) -> dict[str, Any]:
+        """Get usage stats for an agent key (total_queries, total_credits, etc.)."""
+        return self._get(f"/agent-keys/{key_id}/usage")
+
+    def get_agent_key_branch_usage(self, key_id: str) -> dict[str, Any]:
+        """Get branch usage for an agent key (Growth+ only)."""
+        return self._get(f"/agent-keys/{key_id}/branch-usage")
 
     # ── CoT Hash Chain Helpers ─────────────────────────────────────────────
 
