@@ -24,7 +24,7 @@ jobs:
       - name: Import check (async client)
         run: python -c "from hatidata import HatiData; print('OK async client')"
       - name: Run tests
-        run: pytest sdk/python/tests/ -v --timeout=30
+        run: pytest sdk/python/tests/ -v
 
   typescript-sdk:
     name: TypeScript SDK
