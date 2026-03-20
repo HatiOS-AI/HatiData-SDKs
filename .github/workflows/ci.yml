@@ -20,9 +20,9 @@ jobs:
       - name: Install SDK
         run: pip install -e "./sdk/python[all,dev]"
       - name: Import check (sync client)
-        run: python -c "from hatidata_agent import HatiDataAgent; print('OK: sync client')"
+        run: python -c "from hatidata_agent import HatiDataAgent; print('OK sync client')"
       - name: Import check (async client)
-        run: python -c "from hatidata import HatiData; print('OK: async client')"
+        run: python -c "from hatidata import HatiData; print('OK async client')"
       - name: Run tests
         run: pytest sdk/python/tests/ -v --timeout=30
 
