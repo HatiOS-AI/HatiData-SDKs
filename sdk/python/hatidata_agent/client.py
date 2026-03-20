@@ -35,8 +35,11 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Generator, Optional
 
-import psycopg2
-import psycopg2.extras
+try:
+    import psycopg2
+    import psycopg2.extras
+except ImportError:
+    psycopg2 = None  # type: ignore[assignment]
 
 # Keywords that indicate hybrid SQL requiring cloud transpilation.
 _HYBRID_SQL_KEYWORDS = re.compile(
