@@ -18,9 +18,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install SDK
-        run: pip install -e "./sdk/python[dev]"
-      - name: Import check
-        run: python -c "from hatidata_agent import HatiDataAgent; print('OK')"
+        run: pip install -e "./sdk/python[all,dev]"
+      - name: Import check (sync client)
+        run: python -c "from hatidata_agent import HatiDataAgent; print('OK: sync client')"
+      - name: Import check (async client)
+        run: python -c "from hatidata import HatiData; print('OK: async client')"
+      - name: Run tests
+        run: pytest sdk/python/tests/ -v --timeout=30
 
   typescript-sdk:
     name: TypeScript SDK
