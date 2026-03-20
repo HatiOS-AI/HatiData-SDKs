@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hatidata-agent"
-version = "0.4.0"
-description = "HatiData Python SDK — agent memory, semantic triggers, branching, chain-of-thought, and sub-10ms SQL for AI agents"
+version = "0.5.0"
+description = "HatiData Python SDK — async-first agent memory, semantic triggers, chain-of-thought, and sub-10ms SQL for AI agents"
 readme = "README.md"
 license = {text = "Apache-2.0"}
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     {name = "Marviy Pte Ltd", email = "eng@hatidata.com"},
 ]
@@ -16,31 +16,33 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Database",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Framework :: AsyncIO",
 ]
 dependencies = [
-    "psycopg2-binary>=2.9",
-    "requests>=2.31",
+    "asyncpg>=0.29",
+    "httpx>=0.27",
 ]
 
 [project.optional-dependencies]
-async = ["asyncpg>=0.29"]
+sync = ["psycopg2-binary>=2.9", "requests>=2.31"]
 langchain = ["langchain-community>=0.2"]
 mcp = ["mcp>=1.0", "duckdb>=1.0"]
 all = [
-    "asyncpg>=0.29",
+    "psycopg2-binary>=2.9",
+    "requests>=2.31",
     "langchain-community>=0.2",
     "mcp>=1.0",
 ]
 dev = [
     "pytest>=8",
     "pytest-asyncio>=0.23",
+    "httpx>=0.27",
 ]
 
 [project.urls]
@@ -54,3 +56,8 @@ hatidata-mcp-server = "hatidata_agent.mcp_server:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
+include = ["hatidata*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
