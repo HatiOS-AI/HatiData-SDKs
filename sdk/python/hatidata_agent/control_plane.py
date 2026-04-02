@@ -36,10 +36,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-try:
-    import requests
-except ImportError:
-    requests = None  # type: ignore[assignment]
+import requests
 
 
 class ControlPlaneClient:
